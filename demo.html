@@ -1,0 +1,998 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Grow a living farm · demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Baloo+2:wght@600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --canopy:#1F4D3A; --canopy-2:#2A6449; --leaf:#5E9E45; --cherry:#B8322B; --sun:#F2B630; --soil:#5A3D27;
+  --bg:#E4F0E7; --surface:#FFFFFF; --ink:#15261E; --muted:#4A5F54; --line:#C6DACD; --chip:#F3F8F4;
+  --you:#2E7D4F; --nb:#A0683A; --good:#2E7D4F; --bad:#B8322B;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1D16; --surface:#17302A; --ink:#E7F2EB; --muted:#A6BFB1; --line:#2A4A3D; --chip:#1D3A30;
+    --you:#6CC08A; --nb:#D79B66; --good:#6CC08A; --bad:#F08A80; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1D16; --surface:#17302A; --ink:#E7F2EB; --muted:#A6BFB1; --line:#2A4A3D; --chip:#1D3A30;
+  --you:#6CC08A; --nb:#D79B66; --good:#6CC08A; --bad:#F08A80; color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:'Atkinson Hyperlegible', 'Segoe UI', system-ui, -apple-system, sans-serif; font-size:17px; line-height:1.45;
+  -webkit-user-select:none; user-select:none; -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation; overscroll-behavior:none;
+}
+h1,h2,h3,.display{font-family:'Baloo 2', 'Trebuchet MS', system-ui, sans-serif; line-height:1.05; margin:0}
+button{font:inherit; color:inherit; cursor:pointer; touch-action:manipulation}
+button:focus-visible{outline:4px solid var(--sun); outline-offset:3px}
+[hidden]{display:none !important}
+
+/* ---------- Start screen ---------- */
+#start{
+  min-height:100%; background:var(--canopy); color:#fff; position:relative; overflow:hidden;
+  display:grid; place-items:center; padding:32px;
+}
+#start .canopy{position:absolute; inset:0; pointer-events:none; opacity:.16; font-size:120px; line-height:1}
+#start .canopy span{position:absolute}
+.start-inner{position:relative; max-width:960px; width:100%}
+.start-inner h1{font-size:clamp(44px,7vw,84px); font-weight:800; max-width:13ch; letter-spacing:-.01em}
+.start-inner .lead{font-size:clamp(19px,2.2vw,24px); max-width:36ch; margin:18px 0 32px; color:#DCEFE3}
+.choices{display:grid; grid-template-columns:1fr 1fr; gap:20px}
+.choice{
+  border:0; border-radius:28px; padding:26px 26px 22px; text-align:left; background:#fff; color:var(--canopy);
+  display:grid; grid-template-columns:auto 1fr; gap:6px 18px; align-items:center; min-height:150px;
+  box-shadow:0 10px 0 #143628; transition:transform .12s, box-shadow .12s;
+}
+.choice:active{transform:translateY(6px); box-shadow:0 4px 0 #143628}
+.choice .ico{font-size:72px; grid-row:span 2; line-height:1}
+.choice b{font-family:'Baloo 2',system-ui,sans-serif; font-size:34px; font-weight:800; line-height:1}
+.choice small{font-size:17px; color:#3F5A4C}
+.how{display:flex; gap:28px; margin-top:34px; padding:0; list-style:none; flex-wrap:wrap; color:#DCEFE3; font-size:18px}
+.how li{display:flex; gap:10px; align-items:center}
+.how li span{width:34px; height:34px; border-radius:50%; background:var(--sun); color:var(--canopy); display:grid; place-items:center; font-weight:700; flex:none}
+.fs-btn{position:absolute; top:calc(16px + env(safe-area-inset-top,0px)); right:20px; background:transparent; border:2px solid #ffffff66; color:#fff; border-radius:999px; padding:8px 16px; font-size:15px; z-index:2}
+
+/* ---------- Game ---------- */
+#game{height:100%; display:grid; grid-template-rows:auto 1fr}
+.topbar{display:flex; align-items:center; gap:18px; padding:10px 20px; background:var(--canopy); color:#fff}
+.topbar .yr{font-family:'Baloo 2',system-ui,sans-serif; font-size:26px; font-weight:800; white-space:nowrap}
+.timeline{display:flex; gap:6px; flex:1; justify-content:center}
+.timeline i{font-style:normal; width:44px; height:44px; border-radius:12px; background:#ffffff1f; display:grid; place-items:center; font-size:22px; color:#ffffffaa; font-size:15px}
+.timeline i.done{background:#ffffff; font-size:24px}
+.timeline i.next{outline:3px solid var(--sun); color:#fff}
+.ghost{background:transparent; border:2px solid #ffffff66; color:#fff; border-radius:999px; padding:8px 18px; font-size:16px; white-space:nowrap}
+
+.board{display:grid; grid-template-columns:minmax(0,1.45fr) minmax(300px,1fr); gap:20px; padding:16px 20px 20px; min-height:0; overflow:auto}
+.farm h2{font-size:28px; font-weight:800; color:var(--canopy)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .farm h2{color:var(--ink)}}
+.farm-head{display:flex; justify-content:space-between; align-items:baseline; gap:12px; margin-bottom:10px}
+.cash{font-size:20px; color:var(--muted)} .cash b{color:var(--ink); font-size:26px; font-family:'Baloo 2',system-ui,sans-serif}
+
+.grid{display:grid; grid-template-columns:repeat(6,1fr); gap:6px; background:var(--soil); padding:8px; border-radius:20px;
+  width:100%; max-width:calc((100dvh - 360px) * 1.5); }
+.tile{
+  aspect-ratio:1; border:0; border-radius:11px; position:relative; padding:0; overflow:visible;
+  font-size:clamp(26px,4.4vw,52px); background:var(--tc,#7FAE52); transition:background-color .9s;
+}
+.tile .crop{position:absolute; font-size:.42em; opacity:.9; line-height:1}
+.tile .c1{left:8%; bottom:6%} .tile .c2{right:8%; top:6%}
+.tile .cnt{position:absolute; left:5%; top:4%; font-size:13px; font-weight:700; line-height:1.2; padding:1px 6px; border-radius:99px; background:#ffffffd9; color:#15261E; z-index:1}
+.tile .cow{position:absolute; right:6%; bottom:4%; font-size:.5em; line-height:1}
+.tile .tree{position:absolute; inset:0; display:grid; place-items:center; line-height:1;
+  transform:scale(var(--s,1)); transition:transform .9s cubic-bezier(.3,1.6,.5,1); filter:drop-shadow(0 4px 2px rgba(0,0,0,.35))}
+.tile .tree.new{animation:pop .45s cubic-bezier(.3,1.8,.5,1)}
+@keyframes pop{from{transform:scale(0)}}
+.tile.shake{animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+
+.palette{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:14px; max-width:calc((100dvh - 360px) * 1.5 + 0px)}
+.seed{
+  border:3px solid var(--line); background:var(--surface); border-radius:18px; padding:10px 8px 8px; text-align:center;
+  display:grid; gap:2px; justify-items:center; min-height:122px;
+}
+.seed .e{font-size:38px; line-height:1}
+.seed .n{font-weight:700; font-size:15px; line-height:1.15}
+.seed .p{font-size:14px; color:var(--muted)}
+.seed .w{font-size:13px; font-weight:700; color:var(--you); line-height:1.15}
+.seed[aria-pressed="true"]{border-color:var(--sun); background:var(--chip); box-shadow:0 0 0 3px var(--sun) inset}
+.hint{min-height:2.9em; margin:10px 0 0; color:var(--muted); font-size:17px; max-width:60ch}
+.hint.warn{color:var(--bad); font-weight:700}
+
+.side{display:flex; flex-direction:column; gap:14px; min-width:0}
+.panel{background:var(--surface); border-radius:22px; padding:16px 18px; border:1px solid var(--line)}
+.tabs{display:flex; gap:6px; margin-bottom:12px; background:var(--chip); padding:4px; border-radius:14px}
+.tab{flex:1; border:0; background:transparent; border-radius:11px; padding:10px; font-weight:700; font-size:16px; color:var(--muted)}
+.tab[aria-selected="true"]{background:var(--surface); color:var(--ink); box-shadow:0 1px 3px #00000026}
+.scores{display:grid; grid-template-columns:1fr auto auto; gap:8px 16px; align-items:center}
+.scores .h{font-weight:700; font-size:15px; text-align:right}
+.scores .h.y{color:var(--you)} .scores .h.n{color:var(--nb)}
+.scores .lab{font-size:16px}
+.scores .v{font-family:'Baloo 2',system-ui,sans-serif; font-size:22px; font-weight:800; text-align:right; white-space:nowrap}
+.scores .v.y{color:var(--you)} .scores .v.n{color:var(--nb)}
+.biostrip{margin:10px 0 0; padding:8px 12px; border-radius:12px; background:var(--chip); font-size:15px; line-height:1.4}
+.biostrip b{color:var(--you)}
+.shade{margin-top:14px; padding-top:12px; border-top:1px solid var(--line)}
+.shade .row{display:flex; justify-content:space-between; font-size:15px; color:var(--muted)}
+.meter{position:relative; height:16px; border-radius:99px; background:var(--chip); margin-top:6px; overflow:hidden; border:1px solid var(--line)}
+.meter .band{position:absolute; top:0; bottom:0; left:20%; width:25%; background:#5E9E4540}
+.meter .fill{position:absolute; top:0; bottom:0; left:0; background:var(--leaf); border-radius:99px; transition:width .5s}
+.meter .fill.over{background:var(--cherry)}
+.meter .target{position:absolute; top:0; bottom:0; left:30%; width:3px; margin-left:-1px; background:var(--ink); opacity:.75; z-index:1}
+.nbfarm h3{font-size:19px; font-weight:600; color:var(--nb); margin-bottom:8px}
+.grid.mini{gap:3px; padding:5px; border-radius:12px; max-width:none}
+.grid.mini .tile{font-size:clamp(14px,2vw,24px); border-radius:6px; pointer-events:none}
+.next{
+  border:0; background:var(--sun); color:#1F3A2A; border-radius:22px; padding:18px; font-family:'Baloo 2',system-ui,sans-serif;
+  font-size:30px; font-weight:800; box-shadow:0 7px 0 #B8861A; margin-top:auto;
+}
+.next:active{transform:translateY(5px); box-shadow:0 2px 0 #B8861A}
+
+@media (max-width:900px), (orientation:portrait){
+  .board{grid-template-columns:1fr}
+  .grid,.palette{max-width:none}
+  .timeline i{width:34px; height:34px}
+}
+
+/* ---------- Weather + modal ---------- */
+#fx{position:fixed; inset:0; pointer-events:none; z-index:20; display:grid; place-items:center; font-size:160px; opacity:0}
+#fx.on{animation:fx 1.1s ease forwards}
+@keyframes fx{0%{opacity:0; transform:scale(.6)}30%{opacity:1; transform:scale(1)}80%{opacity:1}100%{opacity:0; transform:scale(1.15)}}
+#fx.drought{background:radial-gradient(circle,#F2B63055,transparent 70%)}
+#fx.rain{background:linear-gradient(#3A6E9A44,#3A6E9A22)}
+#fx.heat{background:radial-gradient(circle,#B8322B44,transparent 70%)}
+
+.modal{position:fixed; inset:0; background:#0B1A1299; z-index:30; display:grid; place-items:center; padding:20px}
+.card{background:var(--surface); color:var(--ink); border-radius:28px; padding:26px 28px; width:min(640px,100%); max-height:92dvh; overflow:auto; box-shadow:0 24px 60px #00000055}
+.card .top{display:flex; gap:16px; align-items:center}
+.card .big{font-size:64px; line-height:1}
+.card .when{color:var(--muted); font-size:16px}
+.card h2{font-size:38px; font-weight:800}
+.compare{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:18px 0}
+.compare > div{border-radius:18px; padding:14px 16px; background:var(--chip); border:2px solid var(--line)}
+.compare .who{font-weight:700; font-size:15px}
+.compare .you .who{color:var(--you)} .compare .nb .who{color:var(--nb)}
+.compare .amt{font-family:'Baloo 2',system-ui,sans-serif; font-size:32px; font-weight:800; line-height:1.1}
+.compare ul{margin:6px 0 0; padding-left:18px; font-size:15px; color:var(--muted)}
+.fact{display:flex; gap:12px; background:#5E9E451f; border-radius:18px; padding:14px 16px; font-size:18px}
+.fact .e{font-size:28px; line-height:1}
+.card .go{width:100%; margin-top:18px}
+
+/* ---------- End ---------- */
+#end{min-height:100%; background:var(--canopy); color:#fff; display:grid; place-items:center; padding:28px}
+.end-inner{width:min(900px,100%)}
+.end-inner h1{font-size:clamp(40px,6vw,68px); font-weight:800}
+.end-inner .lead{font-size:21px; color:#DCEFE3; max-width:44ch; margin:10px 0 22px}
+.result{display:grid; grid-template-columns:1.2fr 1fr 1fr; background:#fff; color:#15261E; border-radius:24px; overflow:hidden}
+.result > div{padding:8px 16px; border-bottom:1px solid #DDE8E1; font-size:17px; display:flex; align-items:center}
+.result .hd{font-weight:700; font-size:16px; background:#F0F7F2}
+.result .y{color:#2E7D4F; font-family:'Baloo 2',system-ui,sans-serif; font-size:22px; font-weight:800; justify-content:flex-end}
+.result .n{color:#A0683A; font-family:'Baloo 2',system-ui,sans-serif; font-size:22px; font-weight:800; justify-content:flex-end}
+.result .hd.y,.result .hd.n{font-family:inherit; font-size:16px}
+.lessons{display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin:22px 0; padding:0; list-style:none}
+.lessons li{background:#ffffff14; border-radius:18px; padding:14px 16px; font-size:17px}
+.lessons li b{display:block; font-size:30px; line-height:1; margin-bottom:6px}
+.end-btns{display:flex; gap:14px; flex-wrap:wrap}
+.end-btns .next{margin:0; flex:1 1 240px; font-size:26px}
+.end-btns .alt{flex:1 1 200px; border:3px solid #ffffff88; background:transparent; color:#fff; border-radius:22px; font-family:'Baloo 2',system-ui,sans-serif; font-size:24px; font-weight:700; padding:14px}
+.foot{margin-top:18px; color:#BFDCCB; font-size:15px}
+.ff-btn{display:flex; align-items:center; justify-content:center; gap:12px; width:100%; margin:0 0 14px; border:0; border-radius:22px; padding:16px;
+  background:#fff; color:#1F4D3A; font-family:'Baloo 2',system-ui,sans-serif; font-size:26px; font-weight:800; box-shadow:0 6px 0 #B9D6C3}
+.ff-btn:active{transform:translateY(4px); box-shadow:0 2px 0 #B9D6C3}
+
+/* ---------- 30-year view ---------- */
+#future{min-height:100%; background:var(--canopy); color:#fff; display:grid; place-items:center; padding:24px 28px}
+#future .lead{font-size:20px; color:#DCEFE3; max-width:60ch; margin:8px 0 16px}
+#future h1{font-size:clamp(36px,5vw,58px); font-weight:800}
+.fchart{background:#fff; color:#15261E; border-radius:24px; padding:14px 16px 6px}
+.fchart h3{font-size:20px; font-weight:800; margin:0 4px 4px}
+.fchart svg{display:block; width:100%; height:auto}
+.fchart .gl{stroke:#DDE8E1; stroke-width:1}
+.fchart .gl.zero{stroke:#9DB5A6; stroke-width:1.5}
+.fchart .ax{fill:#4A5F54; font-size:15px; font-family:'Atkinson Hyperlegible',system-ui,sans-serif}
+.fchart .band{fill:#5E9E45; opacity:.09}
+.fchart .mark{stroke:#1F4D3A; stroke-width:2; stroke-dasharray:5 5}
+.fchart .mk{fill:#1F4D3A; font-size:15px; font-weight:700; font-family:'Atkinson Hyperlegible',system-ui,sans-serif}
+.fchart .ln{fill:none; stroke-width:5; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:1; animation:draw 2.6s ease-out both}
+.fchart .ln.y{stroke:#2E7D4F} .fchart .ln.n{stroke:#A0683A; stroke-width:4}
+.fchart .el{font-family:'Baloo 2',system-ui,sans-serif; font-size:20px; font-weight:800}
+.fchart .el.y{fill:#2E7D4F} .fchart .el.n{fill:#A0683A}
+.fchart .dot.y{fill:#2E7D4F} .fchart .dot.n{fill:#A0683A}
+@keyframes draw{from{stroke-dashoffset:1} to{stroke-dashoffset:0}}
+.fstats{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:14px 0 18px}
+.fstats > div{background:#ffffff14; border-radius:18px; padding:12px 14px}
+.fstats .ic{font-size:26px; line-height:1}
+.fstats .lb{font-size:15px; color:#DCEFE3; margin-top:4px}
+.fstats .big{font-family:'Baloo 2',system-ui,sans-serif; font-size:32px; font-weight:800; line-height:1.1}
+.fstats .sm{font-size:14px; color:#BFDCCB}
+@media (max-width:760px){ .fstats{grid-template-columns:repeat(2,1fr)} }
+@media (max-width:760px){ .choices,.lessons,.compare{grid-template-columns:1fr} .result{grid-template-columns:1.3fr 1fr 1fr} }
+
+.demo-btn{margin-top:18px; width:100%; border:3px solid #ffffff88; background:transparent; color:#fff; border-radius:22px; padding:14px; font-family:'Baloo 2',system-ui,sans-serif; font-size:24px; font-weight:700}
+#demoShield{position:fixed; inset:0; z-index:40; background:transparent}
+#demoRing{position:fixed; z-index:41; border:5px solid #E0242E; border-radius:16px; pointer-events:none;
+  box-shadow:0 0 0 4px #ffffffcc, 0 0 0 9999px rgba(10,20,15,.32);
+  transition:left .45s ease, top .45s ease, width .45s ease, height .45s ease}
+#demoRing.tap{animation:tap .35s ease}
+@keyframes tap{50%{transform:scale(.94); border-color:#ff6b70}}
+#demoCap{position:fixed; z-index:42; background:#fff; color:#15261E; border:4px solid #E0242E; border-radius:18px; padding:14px 18px;
+  font-size:20px; line-height:1.35; box-shadow:0 12px 30px #00000055; pointer-events:none; transition:left .45s ease, top .45s ease}
+#demoBar{position:fixed; z-index:42; left:50%; transform:translateX(-50%); bottom:calc(14px + env(safe-area-inset-bottom,0px));
+  background:#E0242E; color:#fff; border-radius:999px; padding:10px 22px; font-weight:700; font-size:17px; pointer-events:none; white-space:nowrap}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation:none !important; transition:none !important}
+}
+</style>
+</head>
+<body>
+
+<section id="start">
+  <button class="fs-btn" id="fsBtn" hidden>Full screen</button>
+  <div class="canopy" aria-hidden="true">
+    <span style="left:-30px;top:-20px">🌳</span><span style="right:6%;top:4%">🌳</span><span style="left:58%;bottom:-30px">🌳</span>
+    <span style="left:12%;bottom:8%">🌿</span><span style="right:-20px;bottom:18%">🌲</span><span style="left:40%;top:-50px">🌳</span>
+  </div>
+  <div class="start-inner">
+    <h1>Plant trees and watch your farm change</h1>
+    <p class="lead">Eight years of droughts, heat, rain and price drops, then a look 30 years ahead. Your neighbour plants no trees. Who ends up ahead?</p>
+    <div class="choices">
+      <button class="choice" data-farm="coffee"><span class="ico">☕</span><b>Coffee farm · 2 ha</b><small>Shade trees, fruit and native trees among the coffee</small></button>
+      <button class="choice" data-farm="pasture"><span class="ico">🐄</span><b>Cattle pasture · 10 ha</b><small>Shade, fodder shrubs and fruit trees for the herd</small></button>
+    </div>
+    <ol class="how">
+      <li><span>1</span>Pick a tree</li>
+      <li><span>2</span>Tap your field to plant it</li>
+      <li><span>3</span>Grow the farm year by year</li>
+    </ol>
+  </div>
+</section>
+
+<section id="game" hidden>
+  <header class="topbar">
+    <div class="yr" id="yrLabel">Planting time</div>
+    <div class="timeline" id="timeline" aria-label="Years"></div>
+    <button class="ghost" id="restart">Start over</button>
+  </header>
+  <main class="board">
+    <div class="farm">
+      <div class="farm-head">
+        <h2 id="farmTitle">Your coffee farm</h2>
+        <div class="cash">Money <b id="cash">$1,500</b></div>
+      </div>
+      <div class="grid" id="grid" role="grid" aria-label="Your field"></div>
+      <div class="palette" id="palette"></div>
+      <p class="hint" id="hint"></p>
+    </div>
+    <aside class="side">
+      <div class="panel">
+        <div class="tabs" role="tablist"><button class="tab" role="tab" data-tab="money" aria-selected="true">Money</button><button class="tab" role="tab" data-tab="farm" aria-selected="false">Farm health</button></div>
+        <div class="scores" id="scores"></div>
+        <p class="biostrip" id="bioStrip" hidden></p>
+        <div class="shade">
+          <div class="row"><span>Canopy cover once trees are grown</span><span id="shadeTxt">0%</span></div>
+          <div class="meter"><div class="band"></div><div class="target"></div><div class="fill" id="shadeFill"></div></div>
+          <div class="row" style="margin-top:4px"><span>Aim for about 30% (20–45% is good)</span></div>
+          <div class="row" style="margin-top:6px"><span>Trees planted</span><b id="treeTxt" style="color:var(--ink)">None yet</b></div>
+        </div>
+      </div>
+      <button class="next" id="nextBtn">Grow year 1</button>
+      <div class="panel nbfarm">
+        <h3 id="nbTitle">Neighbour's farm</h3>
+        <div class="grid mini" id="ngrid" aria-hidden="true"></div>
+      </div>
+    </aside>
+  </main>
+</section>
+
+<section id="end" hidden>
+  <div class="end-inner">
+    <h1 id="endTitle">Your trees paid off</h1>
+    <p class="lead" id="endLead"></p>
+    <div class="result" id="result"></div>
+    <ul class="lessons" id="lessons"></ul>
+    <button class="ff-btn" id="futureBtn"><span aria-hidden="true">⏩</span> Fast-forward to year 30</button>
+    <div class="end-btns">
+      <button class="next" id="againBtn">Play again</button>
+      <button class="alt" id="otherBtn">Try the other farm</button>
+    </div>
+    <p class="foot">An illustrative model, not a forecast. Ask the GrowGrounds team at the stand what this could look like on your farm.</p>
+  </div>
+</section>
+
+<section id="future" hidden>
+  <div class="end-inner">
+    <h1 id="futTitle">30 years on</h1>
+    <p class="lead" id="futLead"></p>
+    <div class="fchart" id="futChart"><h3>Money earned since planting</h3><div id="futSvg"></div></div>
+    <div class="fstats" id="futStats"></div>
+    <div class="end-btns">
+      <button class="next" id="futAgain">Play again</button>
+      <button class="alt" id="futBack">Back to 8-year results</button>
+    </div>
+    <p class="foot">Fast-forward: the same trees, the same mix of weather repeated every 8 years, and today's prices. No trees are cut. An illustrative model, not a forecast.</p>
+  </div>
+</section>
+
+<div id="demoShield" hidden></div>
+<div id="demoRing" hidden></div>
+<div id="demoCap" hidden role="status" aria-live="polite"></div>
+<div id="demoBar" hidden>Demo · tap to pause</div>
+<div id="fx" aria-hidden="true"></div>
+<div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <div class="card">
+    <div class="top"><div class="big" id="mIcon"></div><div><div class="when" id="mWhen"></div><h2 id="mTitle"></h2></div></div>
+    <div class="compare">
+      <div class="you"><div class="who">Your farm</div><div class="amt" id="mYou"></div><ul id="mYouList"></ul></div>
+      <div class="nb"><div class="who">Neighbour, no trees</div><div class="amt" id="mNb"></div><ul id="mNbList"></ul></div>
+    </div>
+    <div class="fact"><span class="e">💡</span><span id="mFact"></span></div>
+    <button class="next go" id="mGo">Continue</button>
+  </div>
+</div>
+
+<script>
+const YEARS = 8, CELLS = 24, START_CASH = 1500, IDLE_MS = 150000;
+/* money and carbon in FARMS are per plot of a REF_HA farm. A bigger farm has bigger plots,
+   so startGame multiplies money and carbon by ha / REF_HA (pasture: 10 / 2 = 5). */
+const REF_HA = 2, CARE_COST = 14;
+/* the end screen can fast-forward the farm to this year (same trees, the played weather repeated) */
+const PROJECT_YEARS = 30;
+/* carbon credits: price per tonne CO2, the farmer's share, and the first year of payment.
+   The first payment covers all carbon stored so far; after that, each year's new carbon is paid that year. */
+const CARBON_PRICE = 35, CARBON_SHARE = 0.8, CARBON_PAY_FROM = 3;
+/* VERSION 'play' = visitors play themselves (index.html); 'demo' = the game plays itself in a loop, tap to pause (demo.html) */
+const VERSION = 'demo';
+/* demo: DEMO_PACE 1 = normal, 1.5 = 50% slower */
+const DEMO_PACE = 1;
+
+const FARMS = {
+  coffee: {
+    type:'coffee', ha:2, title:'Your coffee farm', nbTitle:"Neighbour: coffee in full sun",
+    crop:'🌿', cropName:'coffee', pollination:0.1, yield:1, price:120, cost:30, fert:15, pest:10, heatBonus:false,
+    incomeLabel:'Coffee income', qualityLabel:'Coffee quality', pestLabel:'Pesticide cost', pestShort:'spraying',
+    trees:[
+      {id:'inga',   icon:'🌳', name:'Inga shade tree', per:15, layer:'mid', cost:30, mature:3, shade:1.0, buffer:1.0, nfix:1, soil:2.0, income:0,  carbon:0.5,  timber:0,   when:'Shade from year 3', tip:'Fixes nitrogen, drops leaf mulch and cools the coffee. No fruit to sell, but it feeds the soil and earns carbon credits.'},
+      {id:'banana', icon:'🍌', name:'Banana',          per:50, unit:'banana plants', layer:'low', cost:15, mature:1, shade:0.4, buffer:0.4, nfix:0, soil:0.8, income:22, carbon:0.1,  timber:0,   fruitFrom:1, fruitFull:1, when:'Fruit in year 1', tip:'Bunches within about a year. Quick shade and income while the slower trees grow.'},
+      {id:'avocado',icon:'🥑', name:'Avocado',         per:15, layer:'mid', cost:50, mature:3, shade:0.7, buffer:0.7, nfix:0, soil:1.0, income:60, carbon:0.4,  timber:0,   fruitFrom:4, fruitFull:7, when:'Fruit from year 4', tip:'Grafted avocados give a small first crop around year 4, and more each year after.'},
+      {id:'cedar',  icon:'🌲', name:'Native forest tree', per:10, layer:'tall', native:true, cost:40, mature:5, shade:0.8, buffer:0.8, nfix:0, soil:1.0, income:0,  carbon:1.0,  timber:0,   when:'Carbon for 30+ years', tip:'A long-lived native tree that stays standing. It stores the most carbon, so it earns the most carbon credits, and gives birds a home.'}
+    ]
+  },
+  pasture: {
+    type:'pasture', ha:10, title:'Your cattle pasture', nbTitle:"Neighbour: open grass, no trees",
+    crop:'🌱', cropName:'grass and milk', pollination:0, yield:1, price:100, cost:28, fert:12, pest:7, heatBonus:true,
+    incomeLabel:'Milk and cattle income', qualityLabel:'Herd condition', pestLabel:'Tick and fly treatment', pestShort:'tick and fly treatment',
+    trees:[
+      {id:'shade',   icon:'🌳', name:'Shade tree',   per:50, layer:'tall', cost:30, mature:3, shade:1.0,  buffer:0.9, nfix:0.5, soil:1.6, income:0,  carbon:0.6,  timber:0,   when:'Shade from year 3', tip:'Cattle rest in the shade on hot days and keep producing.'},
+      {id:'leucaena',icon:'🌿', name:'Fodder shrub', per:250, unit:'shrubs', layer:'low', cost:10, mature:1, shade:0.25, buffer:1.3, nfix:1,   soil:1.5, income:12, carbon:0.15, timber:0,   fruitFrom:1, fruitFull:2, when:'Fodder from year 1', tip:'Fast-growing legume. First cuts of protein-rich fodder within a year, more once established.'},
+      {id:'mango',   icon:'🥭', name:'Mango tree',   per:50, layer:'mid', cost:45, mature:3, shade:0.8,  buffer:0.7, nfix:0,   soil:1.0, income:55, carbon:0.4,  timber:0,   fruitFrom:4, fruitFull:7, when:'Fruit from year 4', tip:'Grafted mangoes start fruiting around year 4. Shade for the herd long before that.'},
+      {id:'teak',    icon:'🌲', name:'Native forest tree', per:50, layer:'tall', native:true, cost:40, mature:5, shade:0.8,  buffer:0.8, nfix:0,   soil:1.0, income:0,  carbon:1.0,  timber:0,   when:'Carbon for 30+ years', tip:'A long-lived native tree that stays standing, along fences or in the field. It stores the most carbon, so it earns the most carbon credits.'}
+    ]
+  }
+};
+
+const EVENTS = {
+  coffee: {
+    good:   {icon:'🌤️', name:'A good year', facts:[
+      'Nitrogen-fixing trees like inga feed the soil, so you can buy less fertiliser.',
+      'Most fruit trees take 3 to 5 years to bear. Bananas and beans between young trees bring income while you wait.',
+      'Every tree stores carbon in its trunk and roots. From year 3 the carbon project pays for it, and 80% of the credit money goes to the farmer.',
+      'More kinds of trees bring more birds, bees and other helpers to the farm.',
+      'Bees visiting coffee flowers help more cherries to set, so the harvest is bigger, even though coffee can pollinate itself.',
+      'Native trees give local birds food and nesting places. Trees of different heights, from bananas to tall natives, make room for more kinds of life.',
+      'Fallen leaves become mulch. It keeps weeds down and the soil soft and alive.',
+      'Coffee ripens more slowly under moderate shade. That often gives denser beans and a better cup, which buyers pay more for.']},
+    drought:{icon:'☀️', name:'Drought', hit:0.35, fx:'drought', fact:'Tree roots and fallen leaves keep moisture in the soil, so coffee under shade holds on longer when the rain fails.'},
+    heat:   {icon:'🌡️', name:'Heat wave', hit:0.25, fx:'heat', fact:'Shade keeps coffee leaves several degrees cooler. That protects the flowers and the young cherries.'},
+    rain:   {icon:'🌧️', name:'Heavy rains', hit:0.12, soilHit:8, fx:'rain', fact:'Roots and leaf litter hold the soil in place. On bare slopes, storms wash the fertile topsoil away.'},
+    price:  {icon:'📉', name:'Coffee price falls', price:0.65, fact:'Bananas, avocados and other fruit bring money that does not depend on the coffee price.'},
+    pest:   {icon:'🐛', name:'Berry borer attack', hit:0.22, pest:true, fact:'Birds and insects that live in the trees eat pests like the coffee berry borer. Free pest control, and less money spent on spraying.'}
+  },
+  pasture: {
+    good:   {icon:'🌤️', name:'A good year', facts:[
+      'Fodder shrubs fix nitrogen, so the grass around them grows greener without extra fertiliser.',
+      'Fruit trees take 3 to 5 years to bear. Fodder shrubs pay back sooner, with feed from the first year.',
+      'Trees on pasture bring up water and nutrients from deep soil and return them with their leaves.',
+      'Every tree stores carbon in its trunk and roots. From year 3 the carbon project pays for it, and 80% of the credit money goes to the farmer.',
+      'Living fences of trees replace posts that rot, and give fodder and shade for years to come.',
+      'Cattle that rest in the shade stay in better condition, which shows in milk yield and sale weight.',
+      'Birds and dung beetles that live around trees help keep ticks and flies down, so you spend less on treatments.',
+      'Dung beetles bury cow dung. That feeds the soil and breaks the life cycle of flies and worms.',
+      'Native trees give local birds food and nesting places. Trees of different heights, from fodder shrubs to tall natives, make room for more kinds of life.']},
+    drought:{icon:'☀️', name:'Long dry season', hit:0.35, fx:'drought', fact:'Fodder shrubs stay green when the grass dries out, so the cattle still get protein through the dry months.'},
+    heat:   {icon:'🌡️', name:'Heat wave', hit:0.25, fx:'heat', fact:'Cattle with shade suffer less heat stress, so they keep eating and keep giving milk and gaining weight.'},
+    rain:   {icon:'🌧️', name:'Heavy rains', hit:0.12, soilHit:8, fx:'rain', fact:'Tree roots hold the soil. On bare, trampled pasture, heavy rain washes the topsoil away.'},
+    price:  {icon:'📉', name:'Milk price falls', price:0.65, fact:'Mangoes and other fruit bring money that does not depend on the milk or beef price.'}
+  }
+};
+const COWS = [2, 7, 13, 16, 22];
+
+let S = null;
+const $ = id => document.getElementById(id);
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+const money = n => (n < 0 ? '−' : '') + '$' + Math.round(Math.abs(n)).toLocaleString('en-US');
+const tree = id => S.cfg.trees.find(t => t.id === id);
+
+function newFarm(k = 1){ return {trees:{}, soil:50, moisture:35, cash:START_CASH*k, start:START_CASH*k, carbon:0, carbonPaid:0, lastProfit:null, last:null, tot:{crop:0, tree:0, carbon:0, fert:0, pest:0}}; }
+function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a; }
+function makeEvents(type){
+  const pool = type === 'coffee'
+    ? ['drought','heat','rain','price','pest','good','good']
+    : ['drought','heat','rain','price','heat','good','good'];
+  return ['good', ...shuffle(pool)];
+}
+
+/* scale money and carbon to the farm size; shade, soil and other shares stay as they are */
+function scaledFarm(F){
+  const k = F.ha / REF_HA;
+  return {...F, k, price:F.price*k, cost:F.cost*k, fert:F.fert*k, pest:F.pest*k, care:CARE_COST*k,
+    trees: F.trees.map(T => ({...T, cost:T.cost*k, income:T.income*k, carbon:T.carbon*k}))};
+}
+function startGame(type){
+  const cfg = scaledFarm(FARMS[type]);
+  S = {type, cfg, year:0, you:newFarm(cfg.k), nb:newFarm(cfg.k), events:makeEvents(type), sel:cfg.trees[0].id, newCell:null, hist:[]};
+  $('farmTitle').textContent = `${cfg.title} (${cfg.ha} ha)`;
+  $('nbTitle').textContent = cfg.nbTitle;
+  show('game');
+  buildPalette();
+  document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', t.dataset.tab === 'money'));
+  render();
+  setHint('Pick a tree below, then tap your field to plant it. Trees cost money now and pay back later.');
+}
+
+function show(id){ ['start','game','end','future'].forEach(s => $(s).hidden = s !== id); $('modal').hidden = true; }
+
+/* ---------- model ---------- */
+function maturity(t, y){ return clamp((y - t.planted) / tree(t.id).mature, 0, 1); }
+/* biodiversity = open field (8) + tree variety (24) + native trees (24) + canopy layers (20) + tree cover (24).
+   A tree type or layer counts once its trees are 30% grown; cover counts saplings a little (0.15). */
+const BIO = {base:8, variety:6, varietyMax:24, native:24, nativeFull:3, layer:[0, 7, 14, 20], cover:24, coverFull:12};
+function bioParts(farm, y = S.year){
+  const kinds = new Set(), layers = new Set(); let native = 0, cover = 0;
+  for (const t of Object.values(farm.trees)){
+    const T = tree(t.id), m = maturity(t, y);
+    cover += Math.max(0.15, m);
+    if (m >= 0.3){ kinds.add(t.id); layers.add(T.layer); }
+    if (T.native) native += m;
+  }
+  const p = {
+    variety: Math.min(BIO.varietyMax, kinds.size*BIO.variety),
+    native:  BIO.native*Math.min(1, native/BIO.nativeFull),
+    layers:  BIO.layer[Math.min(3, layers.size)],
+    cover:   BIO.cover*Math.min(1, cover/BIO.coverFull)
+  };
+  p.total = Math.min(100, BIO.base + p.variety + p.native + p.layers + p.cover);
+  return p;
+}
+function bioScore(farm, y = S.year){ return Math.round(bioParts(farm, y).total); }
+/* what the score means on the farm, each 0-1: birds, bees and other pollinators, soil life */
+function bioLife(farm, y = S.year){
+  const p = bioParts(farm, y);
+  return {
+    birds: 0.45*p.native/BIO.native + 0.35*p.layers/20 + 0.2*p.variety/BIO.varietyMax,
+    bees:  0.6*p.variety/BIO.varietyMax + 0.4*p.cover/BIO.cover,
+    soil:  0.6*clamp((farm.soil - 30)/60, 0, 1) + 0.4*p.cover/BIO.cover
+  };
+}
+const lifeShort = (f, y) => { const L = bioLife(f, y); return ['birds','bees','soil'].map(k => lifeWord(L[k]).replace('Very low','V. low')).join(' · '); };
+const lifeWord = v => v < 0.1 ? 'Very low' : v < 0.35 ? 'Low' : v < 0.65 ? 'Medium' : 'High';
+function lifeLine(farm, y){ const L = bioLife(farm, y); return `🐦 Birds ${lifeWord(L.birds)} · 🐝 Bees ${lifeWord(L.bees)} · 🪲 Soil life ${lifeWord(L.soil)}`; }
+/* trees per plot: each tap plants a group of T.per trees */
+const unitOf = T => T.unit || 'trees';
+/* counts real trees only: banana plants and fodder shrubs (anything with a unit) are left out */
+function treeCount(farm){ return Object.values(farm.trees).reduce((s,t) => { const T = tree(t.id); return s + (T.unit ? 0 : T.per); }, 0); }
+function fullShade(farm){ return Object.values(farm.trees).reduce((s,t) => s + tree(t.id).shade, 0) / CELLS; }
+
+/* income only starts once a tree bears, then ramps up to full production */
+function incomeOf(T, age){
+  if (!T.fruitFrom || age < T.fruitFrom) return 0;
+  return T.income * clamp((age - T.fruitFrom + 1)/(T.fruitFull - T.fruitFrom + 1), 0, 1);
+}
+function treeSums(farm, y){
+  const s = {shade:0, buffer:0, nfix:0, soilG:0, treeInc:0, carb:0, cover:0, n:0, care:0};
+  for (const k in farm.trees){
+    const t = farm.trees[k], T = tree(t.id), m = maturity(t, y);
+    s.n++; s.shade += T.shade*m; s.buffer += T.buffer*m; s.nfix += T.nfix*m; s.soilG += T.soil*m;
+    s.treeInc += incomeOf(T, y - t.planted); s.care += (y - t.planted) <= 2 ? S.cfg.care : 0; s.carb += T.carbon*m; s.cover += m;
+  }
+  s.Sh = s.shade / CELLS;
+  return s;
+}
+/* shade + leaf mulch + healthy soil hold water */
+function moistureOf(farm, s){ return clamp(28 + Math.min(s.Sh, 0.5)*70 + s.soilG/CELLS*12 + (farm.soil - 50)*0.3, 5, 100); }
+/* moderate shade improves bean quality (coffee) or herd condition (pasture); heavy shade gives no extra benefit */
+function qualityOf(s){ return clamp(50 + 40*Math.min(s.Sh, 0.4)/0.4 - Math.max(0, s.Sh - 0.5)*60, 20, 100); }
+function bufferOf(s){ return Math.min(0.8, s.buffer/CELLS*2.2); }
+/* resilience = weather protection + income from more than one product + water in the soil */
+function resilienceOf(farm, s){
+  const diversity = Math.min(1, s.treeInc/(300*S.cfg.k));
+  return Math.round(clamp(100*(0.5*bufferOf(s)/0.8 + 0.25*diversity + 0.25*farm.moisture/100), 0, 100));
+}
+
+function simulate(farm, y, ev){
+  const cfg = S.cfg, s = treeSums(farm, y), Sh = s.Sh;
+  let shadeEff = Sh <= 0.4 ? 1 - 0.1*Sh : 0.96 - (Sh - 0.4)*1.1;
+  if (cfg.heatBonus) shadeEff *= 1 + 0.05*Math.min(1, Sh/0.3);
+  const bio = bioScore(farm, y);
+  const guard = Math.min(0.9, (s.cover + s.n*0.2)/CELLS*2.2);
+  const dSoil = s.soilG/CELLS*3 - 1.5 - (ev.soilHit || 0)*(1 - guard);
+  farm.soil = clamp(farm.soil + dSoil, 5, 100);
+  farm.moisture = clamp(moistureOf(farm, s) - (ev.fx === 'drought' ? 10 : 0), 5, 100);
+  let protect = bufferOf(s);
+  if (ev.fx === 'drought') protect = Math.min(0.85, protect*0.8 + (farm.moisture - 20)/80*0.3);
+  if (ev.pest) protect = Math.min(0.75, (bio - 8)/92*0.9);
+  const bioStop = ev.pest ? protect : 0;
+  protect = Math.max(0, protect);
+  let quality = qualityOf(s);
+  if (ev.fx === 'heat') quality -= 15*(1 - protect);
+  if (ev.fx === 'drought') quality -= 8*(1 - protect);
+  quality = clamp(quality, 20, 100);
+  const premium = 1 + (quality - 50)/100*0.4;
+  const soilMult = 0.75 + 0.5*farm.soil/100;
+  const loss = (ev.hit || 0) * (1 - protect);
+  const pollGain = (cfg.pollination || 0)*bioLife(farm, y).bees;   /* bees set more coffee cherries */
+  const cropInc = CELLS*cfg.yield*shadeEff*soilMult*(1 + pollGain)*(1 - loss)*cfg.price*(ev.price || 1)*premium;
+  const fertFull = CELLS*cfg.fert, fert = fertFull*(1 - Math.min(0.5, s.nfix/CELLS*1.5));
+  const pestFull = CELLS*cfg.pest*(ev.pest ? 2 : 1), pest = pestFull*(1 - Math.min(0.6, (bio - 8)/92*0.8));
+  farm.carbon += s.carb;
+  let carbonT = 0;
+  if (y >= CARBON_PAY_FROM){ carbonT = farm.carbon - farm.carbonPaid; farm.carbonPaid = farm.carbon; }
+  const carbonInc = carbonT*CARBON_PRICE*CARBON_SHARE;
+  const profit = cropInc + s.treeInc + carbonInc - CELLS*cfg.cost - fert - pest - s.care;
+  farm.cash += profit; farm.lastProfit = profit;
+  farm.tot.crop += cropInc; farm.tot.tree += s.treeInc; farm.tot.carbon += carbonInc; farm.tot.fert += fert; farm.tot.pest += pest;
+  farm.last = {cropInc, treeInc: s.treeInc, carbonInc, fert, pest, quality};
+  return {profit, loss, pollGain, bio, bioStop, treeInc: s.treeInc, carbonInc, carbonT, fertSaved: fertFull - fert, pestSaved: pestFull - pest, dSoil, Sh, quality, cropInc};
+}
+
+/* ---------- rendering ---------- */
+function soilColor(soil, dry){
+  const h = 30 + soil*1.0 - (dry ? 18 : 0), l = 40 + soil*0.12;
+  return `hsl(${h} 46% ${l}%)`;
+}
+function tileHTML(farm, i){
+  const t = farm.trees[i];
+  let h = `<span class="crop c1">${S.cfg.crop}</span><span class="crop c2">${S.cfg.crop}</span>`;
+  if (S.type === 'pasture' && COWS.includes(i) && !t) h += `<span class="cow">🐄</span>`;
+  if (t){
+    const T = tree(t.id), age = S.year - t.planted;
+    const m = age <= 0 ? 0 : clamp(age/T.mature, 0, 1);
+    h += `<span class="cnt">×${T.per}</span><span class="tree${S.newCell === i ? ' new' : ''}" style="--s:${(0.42 + 0.58*m).toFixed(2)}">${T.icon}</span>`;
+  }
+  return h;
+}
+function renderGrid(){
+  const g = $('grid'), ng = $('ngrid');
+  if (!g.children.length){
+    for (let i=0;i<CELLS;i++){
+      const b = document.createElement('button'); b.className = 'tile'; b.dataset.i = i;
+      b.setAttribute('aria-label', 'Field plot ' + (i+1)); g.appendChild(b);
+      const d = document.createElement('div'); d.className = 'tile'; ng.appendChild(d);
+    }
+  }
+  const lastEv = S.year > 0 ? S.events[S.year-1] : null;
+  const dryNb = lastEv === 'drought' || lastEv === 'heat';
+  [...g.children].forEach((b,i) => { b.innerHTML = tileHTML(S.you, i); b.style.setProperty('--tc', soilColor(S.you.soil, false)); });
+  [...ng.children].forEach((d,i) => { d.innerHTML = tileHTML(S.nb, i); d.style.setProperty('--tc', soilColor(S.nb.soil, dryNb)); });
+  S.newCell = null;
+}
+function buildPalette(){
+  $('palette').innerHTML = S.cfg.trees.map(T =>
+    `<button class="seed" data-id="${T.id}" aria-pressed="${T.id===S.sel}"><span class="e">${T.icon}</span><span class="n">${T.name}</span><span class="p">${T.per} ${unitOf(T)} · ${money(T.cost)}</span><span class="w">${T.when}</span></button>`
+  ).join('');
+}
+function renderScores(){
+  const y = S.you, n = S.nb, cfg = S.cfg;
+  const L = (f, k) => f.last ? money(f.last[k]) : '–';
+  const sy = treeSums(y, S.year), sn = treeSums(n, S.year);
+  const q = (f, s) => Math.round(f.last ? f.last.quality : qualityOf(s)) + '/100';
+  const rows = (S.tab || 'money') === 'money' ? [
+    ['Profit last year', y.lastProfit==null ? '–' : money(y.lastProfit), n.lastProfit==null ? '–' : money(n.lastProfit)],
+    ['Money in the bank', money(y.cash), money(n.cash)],
+    [cfg.incomeLabel, L(y,'cropInc'), L(n,'cropInc')],
+    ['Fruit and tree income', L(y,'treeInc'), L(n,'treeInc')],
+    ['Carbon credits', L(y,'carbonInc'), L(n,'carbonInc')],
+    ['Fertiliser cost', L(y,'fert'), L(n,'fert')],
+    [cfg.pestLabel, L(y,'pest'), L(n,'pest')]
+  ] : [
+    [cfg.qualityLabel, q(y,sy), q(n,sn)],
+    ['Soil health', Math.round(y.soil) + '/100', Math.round(n.soil) + '/100'],
+    ['Soil moisture', Math.round(y.moisture) + '/100', Math.round(n.moisture) + '/100'],
+    ['Biodiversity', bioScore(y) + '/100', bioScore(n) + '/100'],
+    ['Resilience', resilienceOf(y, sy) + '/100', resilienceOf(n, sn) + '/100'],
+    ['Carbon stored', y.carbon.toFixed(1) + ' t', n.carbon.toFixed(1) + ' t']
+  ];
+  const farmTab = (S.tab || 'money') !== 'money';
+  $('bioStrip').hidden = !farmTab;
+  if (farmTab) $('bioStrip').innerHTML = `<b>Your farm</b>: ${lifeLine(y)}`;
+  $('scores').innerHTML = `<span></span><span class="h y">You</span><span class="h n">Neighbour</span>` +
+    rows.map(r => `<span class="lab">${r[0]}</span><span class="v y">${r[1]}</span><span class="v n">${r[2]}</span>`).join('');
+  const sh = fullShade(S.you);
+  $('shadeTxt').textContent = Math.round(sh*100) + '%';
+  const nT = treeCount(S.you);
+  $('treeTxt').textContent = nT ? `${nT.toLocaleString('en-US')} · ${Math.round(nT/S.cfg.ha)} per ha` : 'None yet';
+  const f = $('shadeFill'); f.style.width = Math.min(100, sh*100) + '%'; f.classList.toggle('over', sh > 0.5);
+}
+function renderTimeline(){
+  let h = '';
+  for (let i=0;i<YEARS;i++){
+    if (i < S.year) h += `<i class="done" title="Year ${i+1}">${EVENTS[S.type][S.events[i]].icon}</i>`;
+    else h += `<i class="${i === S.year ? 'next' : ''}">${i+1}</i>`;
+  }
+  $('timeline').innerHTML = h;
+  $('yrLabel').textContent = S.year === 0 ? 'Planting time' : `Year ${S.year} of ${YEARS}`;
+  $('nextBtn').textContent = S.year >= YEARS ? 'See results' : `Grow year ${S.year + 1}`;
+}
+function render(){ renderGrid(); renderScores(); renderTimeline(); $('cash').textContent = money(S.you.cash); }
+
+function setHint(txt, warn){ const h = $('hint'); h.textContent = txt; h.classList.toggle('warn', !!warn); }
+
+/* ---------- interactions ---------- */
+function plant(i){
+  if (S.year >= YEARS) return;
+  const t = S.you.trees[i], btn = $('grid').children[i];
+  if (t){
+    if (t.planted === S.year){
+      S.you.cash += tree(t.id).cost; delete S.you.trees[i];
+      setHint('Tree removed and money returned.');
+    } else {
+      btn.classList.remove('shake'); void btn.offsetWidth; btn.classList.add('shake');
+      setHint('This tree is already growing. Trees planted in earlier years stay on the farm.');
+    }
+    render(); return;
+  }
+  const T = tree(S.sel);
+  if (S.you.cash < T.cost){ setHint(`Not enough money for a ${T.name.toLowerCase()} right now.`, true); return; }
+  S.you.cash -= T.cost; S.you.trees[i] = {id:T.id, planted:S.year}; S.newCell = i;
+  render();
+  const sh = fullShade(S.you);
+  if (sh > 0.5) setHint(`Careful: once these trees are grown, the field will be very shady. The ${S.cfg.cropName} still needs sun. Tap a new tree again to remove it.`, true);
+  else setHint(`${T.icon} ${T.per} ${unitOf(T)} planted on this plot. ${T.tip}`);
+}
+
+function grow(){
+  if (S.year >= YEARS){ showEnd(); return; }
+  const y = S.year + 1, key = S.events[y-1], ev = EVENTS[S.type][key];
+  if (y === 1) S.hist = [point(0)];
+  const r1 = simulate(S.you, y, ev), r2 = simulate(S.nb, y, ev);
+  S.year = y; S.hist.push(point(y));
+  playFx(ev.fx, ev.icon, () => { render(); showCard(key, ev, r1, r2); });
+}
+
+function playFx(cls, icon, done){
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!cls || reduce){ done(); return; }
+  const fx = $('fx'); fx.className = ''; fx.textContent = icon; void fx.offsetWidth; fx.className = 'on ' + cls;
+  setTimeout(() => { fx.className = ''; done(); }, 1100);
+}
+
+function showCard(key, ev, r1, r2){
+  if ($('game').hidden) return;
+  $('mIcon').textContent = ev.icon;
+  $('mWhen').textContent = `Year ${S.year} of ${YEARS}`;
+  $('mTitle').textContent = ev.name;
+  $('mYou').textContent = money(r1.profit) + ' profit';
+  $('mNb').textContent = money(r2.profit) + ' profit';
+  const you = [], nb = [];
+  if (ev.hit){
+    you.push(`Lost ${Math.round(r1.loss*100)}% of the ${S.cfg.cropName} harvest`);
+    nb.push(`Lost ${Math.round(r2.loss*100)}% of the ${S.cfg.cropName} harvest`);
+  }
+  if (ev.price){ you.push('Price fell for everyone'); nb.push('Price fell for everyone'); }
+  if (r1.treeInc > 5) you.push(`Fruit and tree products earned ${money(r1.treeInc)}`);
+  if (r1.carbonInc > 0) you.push(S.year === CARBON_PAY_FROM
+    ? `First carbon credit payment: ${money(r1.carbonInc)} for ${r1.carbonT.toFixed(1)} t CO₂ (you get ${Math.round(CARBON_SHARE*100)}%)`
+    : `Carbon credits paid ${money(r1.carbonInc)}`);
+  else if (S.you.carbon > 0 && S.year < CARBON_PAY_FROM) you.push(`Trees stored ${S.you.carbon.toFixed(1)} t CO₂ so far. Carbon credits are paid from year ${CARBON_PAY_FROM}`);
+  if (r1.fertSaved > 5) you.push(`Saved ${money(r1.fertSaved)} on fertiliser`);
+  if (r1.pestSaved > 5) you.push(`Saved ${money(r1.pestSaved)} on ${S.cfg.pestShort}, thanks to biodiversity`);
+  if (r1.pollGain >= 0.01) you.push(`Bees added ${Math.round(r1.pollGain*100)}% to the coffee harvest`);
+  if (ev.pest) you.push(`Biodiversity ${r1.bio}/100: birds and insects stopped ${Math.round(r1.bioStop*100)}% of the attack`);
+  if (ev.pest) nb.push(`Spent ${money(S.nb.last.pest)} on ${S.cfg.pestShort}`);
+  if (ev.fx === 'drought'){ you.push(`Soil moisture ${Math.round(S.you.moisture)}/100`); nb.push(`Soil moisture ${Math.round(S.nb.moisture)}/100`); }
+  you.push(`${S.cfg.qualityLabel} ${Math.round(r1.quality)}/100`);
+  nb.push(`${S.cfg.qualityLabel} ${Math.round(r2.quality)}/100`);
+  you.push(r1.dSoil >= 0 ? 'Soil got healthier' : 'Soil got a little weaker');
+  nb.push(r2.dSoil >= 0 ? 'Soil held steady' : (ev.soilHit ? 'Rain washed topsoil away' : 'Bare soil got weaker'));
+  if (S.year <= 3 && r1.profit < r2.profit && Object.keys(S.you.trees).length) you.push('Young trees cost money and care before they pay back. Fast crops like bananas or fodder shrubs help bridge the gap');
+  if (Object.keys(S.you.trees).length === 0) you.push('No trees yet. Plant some to see what changes');
+  $('mYouList').innerHTML = you.map(s => `<li>${s}</li>`).join('');
+  $('mNbList').innerHTML = nb.map(s => `<li>${s}</li>`).join('');
+  $('mFact').textContent = ev.facts ? ev.facts[(S.year) % ev.facts.length] : ev.fact;
+  $('mGo').textContent = S.year >= YEARS ? 'See results' : 'Back to the farm';
+  $('modal').hidden = false;
+  $('mGo').focus();
+}
+function closeCard(){
+  $('modal').hidden = true;
+  if (S.year >= YEARS){ showEnd(); return; }
+  setHint(S.year < 3 ? 'Young trees take time. You can plant more before the next year.' : 'Plant more trees, or grow the next year.');
+}
+
+function showEnd(){
+  const y = S.you, n = S.nb;
+  const timber = Object.values(y.trees).reduce((s,t) => s + tree(t.id).timber*clamp((YEARS - t.planted)/15, 0, 1), 0);
+  const yEarn = y.cash - y.start, nEarn = n.cash - n.start;
+  const yTotal = yEarn;
+  const sy = treeSums(y, YEARS), sn = treeSums(n, YEARS), cfg = S.cfg;
+  const rows = [
+    ['', 'You', 'Neighbour'],
+    [`Profit in 8 years (${cfg.ha} ha)`, money(yEarn), money(nEarn)],
+    [cfg.incomeLabel, money(y.tot.crop), money(n.tot.crop)],
+    ['Fruit and tree income', money(y.tot.tree), money(n.tot.tree)],
+    ['Carbon credits', money(y.tot.carbon), money(n.tot.carbon)],
+    ['Spent on fertiliser', money(y.tot.fert), money(n.tot.fert)],
+    ['Spent on ' + cfg.pestShort, money(y.tot.pest), money(n.tot.pest)],
+    [cfg.qualityLabel, Math.round(y.last.quality) + '/100', Math.round(n.last.quality) + '/100'],
+    ['Soil health', Math.round(y.soil) + '/100', Math.round(n.soil) + '/100'],
+    ['Soil moisture', Math.round(y.moisture) + '/100', Math.round(n.moisture) + '/100'],
+    ['Biodiversity', bioScore(y) + '/100', bioScore(n) + '/100'],
+    ['Birds · bees · soil life', lifeShort(y, YEARS), lifeShort(n, YEARS)],
+    ['Resilience', resilienceOf(y, sy) + '/100', resilienceOf(n, sn) + '/100'],
+    ['Trees on the farm', treeCount(y).toLocaleString('en-US'), treeCount(n).toLocaleString('en-US')],
+    ['Carbon stored', y.carbon.toFixed(1) + ' t CO₂', n.carbon.toFixed(1) + ' t CO₂']
+  ];
+  $('result').innerHTML = rows.map((r,i) => {
+    const c = i === 0 ? ' hd' : '';
+    return `<div class="${c}">${r[0]}</div><div class="y${c}">${r[1]}</div><div class="n${c}">${r[2]}</div>`;
+  }).join('');
+  const treesN = Object.keys(y.trees).length;
+  if (treesN === 0){
+    $('endTitle').textContent = 'Same farm as your neighbour';
+    $('endLead').textContent = 'You planted no trees, so both farms faced every drought and price drop alone. Play again and try planting some.';
+  } else if (yTotal > nEarn){
+    $('endTitle').textContent = 'Your trees paid off';
+    $('endLead').textContent = `You ended ${money(yTotal - nEarn)} ahead of your neighbour, with healthier soil and a farm that handles bad years better.`;
+  } else if (fullShade(y) > 0.5){
+    $('endTitle').textContent = 'Too much shade this time';
+    $('endLead').textContent = `Your soil and biodiversity improved, but the field got so shady that the ${S.cfg.cropName} suffered. Try fewer, well-spaced trees.`;
+  } else {
+    $('endTitle').textContent = 'The trees need a bit longer';
+    $('endLead').textContent = 'Your soil and biodiversity are already ahead. Trees planted later need more years to pay back. Try planting earlier.';
+  }
+  const L = S.type === 'coffee'
+    ? [['🛡️','Shade and moist soil soften droughts, heat waves and pest attacks.'],['☕','Coffee ripening under moderate shade often gives a better cup and a better price.'],['💰','Bananas and fruit trees give income when the coffee price drops.'],['🐝','More biodiversity: birds eat pests and bees set more coffee cherries, so you spray less and harvest more.']]
+    : [['🐄','Shaded cattle stay in better condition and keep producing in the heat.'],['🌿','Fodder shrubs feed the herd when the grass is dry.'],['💰','Fruit trees give income when the milk price drops.'],['🐦','More biodiversity: birds and dung beetles keep ticks and flies down, so you spend less on treatments.']];
+  $('lessons').innerHTML = L.map(l => `<li><b>${l[0]}</b>${l[1]}</li>`).join('');
+  show('end');
+}
+
+/* ---------- 30-year fast-forward ---------- */
+function point(y, you = S.you, nb = S.nb){ return {y, you:you.cash - you.start, nb:nb.cash - nb.start, cy:you.carbon, cn:nb.carbon}; }
+/* keep the same trees and repeat the weather the player just had, up to PROJECT_YEARS */
+function project(){
+  const you = JSON.parse(JSON.stringify(S.you)), nb = JSON.parse(JSON.stringify(S.nb));
+  const hist = S.hist.slice();
+  for (let y = YEARS + 1; y <= PROJECT_YEARS; y++){
+    const ev = EVENTS[S.type][S.events[(y - 1) % YEARS]];
+    simulate(you, y, ev); simulate(nb, y, ev);
+    hist.push(point(y, you, nb));
+  }
+  return {hist, you, nb};
+}
+function niceStep(x){ const p = Math.pow(10, Math.floor(Math.log10(x || 1))); for (const m of [1, 2, 2.5, 5, 10]) if (m*p >= x) return m*p; return 10*p; }
+function shortMoney(v){ const a = Math.abs(v); const t = a >= 1000 ? (a/1000).toFixed(a % 1000 ? 1 : 0).replace(/\.0$/, '') + 'k' : Math.round(a); return (v < 0 ? '−' : '') + '$' + t; }
+function chartSVG(h){
+  const W = 820, H = 280, L = 62, R = 150, T = 30, B = 34;
+  const vals = h.flatMap(p => [p.you, p.nb]);
+  let lo = Math.min(0, ...vals), hi = Math.max(1, ...vals);
+  if (lo < 0 && -lo < (hi - lo)*0.04) lo = 0;   /* the small planting dip needs no extra gridline */
+  const step = niceStep((hi - lo)/4); lo = Math.floor(lo/step)*step; hi = Math.ceil(hi/step)*step;
+  const X = y => L + (W - L - R)*y/PROJECT_YEARS, Y = v => T + (H - T - B)*(hi - v)/(hi - lo);
+  let g = `<rect class="band" x="${X(YEARS)}" y="${T - 22}" width="${X(PROJECT_YEARS) - X(YEARS)}" height="${H - B - T + 22}"/>`;
+  g += `<text class="mk" x="${(X(YEARS) + X(PROJECT_YEARS))/2}" y="${T - 6}" text-anchor="middle">Fast-forward ⏩</text>`;
+  for (let v = lo; v <= hi + 1e-6; v += step)
+    g += `<line class="gl${Math.abs(v) < 1e-6 ? ' zero' : ''}" x1="${L}" x2="${X(PROJECT_YEARS)}" y1="${Y(v)}" y2="${Y(v)}"/><text class="ax" x="${L - 8}" y="${Y(v) + 5}" text-anchor="end">${shortMoney(v)}</text>`;
+  for (let y = 0; y <= PROJECT_YEARS; y += 5)
+    g += `<text class="ax" x="${X(y)}" y="${H - 8}" text-anchor="middle">${y === 0 ? 'Start' : 'Year ' + y}</text>`;
+  g += `<line class="mark" x1="${X(YEARS)}" x2="${X(YEARS)}" y1="${T - 22}" y2="${H - B}"/>`;
+  g += `<text class="mk" x="${X(YEARS) - 8}" y="${T - 6}" text-anchor="end">You played ${YEARS} years</text>`;
+  const path = k => h.map((p, i) => (i ? 'L' : 'M') + X(p.y).toFixed(1) + ' ' + Y(p[k]).toFixed(1)).join(' ');
+  g += `<path class="ln n" pathLength="1" d="${path('nb')}"/><path class="ln y" pathLength="1" d="${path('you')}"/>`;
+  const last = h[h.length - 1], xe = X(PROJECT_YEARS);
+  let yy = Y(last.you), yn = Y(last.nb);
+  if (Math.abs(yy - yn) < 44){ const mid = (yy + yn)/2, up = last.you >= last.nb ? -1 : 1; yy = mid + up*22; yn = mid - up*22; }
+  g += `<circle class="dot y" cx="${xe}" cy="${Y(last.you)}" r="7"/><circle class="dot n" cx="${xe}" cy="${Y(last.nb)}" r="6"/>`;
+  g += `<text class="el y" x="${xe + 14}" y="${yy - 2}">You</text><text class="ax" x="${xe + 14}" y="${yy + 17}">${money(last.you)}</text>`;
+  g += `<text class="el n" x="${xe + 14}" y="${yn - 2}">Neighbour</text><text class="ax" x="${xe + 14}" y="${yn + 17}">${money(last.nb)}</text>`;
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Money earned over ${PROJECT_YEARS} years: you ${money(last.you)}, neighbour ${money(last.nb)}">${g}</svg>`;
+}
+function showFuture(){
+  const P = project(), h = P.hist, last = h[h.length - 1], diff = last.you - last.nb;
+  const treesN = Object.keys(S.you.trees).length;
+  let pay = null;
+  for (const p of h) if (p.y > 0 && p.you >= p.nb){ pay = p.y; break; }
+  if (!treesN){
+    $('futTitle').textContent = `${PROJECT_YEARS} years on: still the same farm`;
+    $('futLead').textContent = 'Without trees, both farms face every bad year alone, and the bare soil keeps getting weaker. Play again and plant some trees.';
+  } else if (diff > 0){
+    $('futTitle').textContent = `${PROJECT_YEARS} years on: ${money(diff)} ahead`;
+    $('futLead').textContent = (pay ? `Your trees caught up with the neighbour in year ${pay}, and they keep paying back. ` : 'Your trees keep paying back. ')
+      + 'They are never cut, so they keep protecting the farm and storing carbon year after year.';
+  } else {
+    $('futTitle').textContent = `${PROJECT_YEARS} years on`;
+    $('futLead').textContent = `Soil, biodiversity and carbon keep improving, but the field is so shady that the ${S.cfg.cropName} earns less than the neighbour's. Try fewer, well-spaced trees.`;
+  }
+  $('futSvg').innerHTML = chartSVG(h);
+  const st = [
+    ['💰', `Extra profit over ${PROJECT_YEARS} years`, money(diff), `You ${money(last.you)} · neighbour ${money(last.nb)}`],
+    ['🌍', 'Carbon stored', Math.round(last.cy) + ' t CO₂', `Carbon credits paid to you: ${money(P.you.tot.carbon)} · neighbour ${Math.round(last.cn)} t`],
+    ['🌱', 'Soil health', Math.round(P.you.soil) + '/100', `Neighbour ${Math.round(P.nb.soil)}/100`],
+    ['🐦', 'Biodiversity', bioScore(P.you, PROJECT_YEARS) + '/100', `${lifeLine(P.you, PROJECT_YEARS).replace(/ · /g, '<br>')}<br>Neighbour ${bioScore(P.nb, PROJECT_YEARS)}/100`]
+  ];
+  $('futStats').innerHTML = st.map(s => `<div><div class="ic">${s[0]}</div><div class="lb">${s[1]}</div><div class="big">${s[2]}</div><div class="sm">${s[3]}</div></div>`).join('');
+  show('future'); scrollTo(0, 0);
+}
+
+/* ---------- wiring ---------- */
+document.querySelectorAll('.choice').forEach(b => b.addEventListener('click', () => startGame(b.dataset.farm)));
+$('grid').addEventListener('click', e => { const b = e.target.closest('.tile'); if (b) plant(+b.dataset.i); });
+$('palette').addEventListener('click', e => {
+  const b = e.target.closest('.seed'); if (!b) return;
+  S.sel = b.dataset.id;
+  document.querySelectorAll('.seed').forEach(s => s.setAttribute('aria-pressed', s.dataset.id === S.sel));
+  const T = tree(S.sel); setHint(`${T.icon} ${T.name}, ${T.per} ${unitOf(T)} per plot: ${T.tip}`);
+});
+document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => {
+  S.tab = b.dataset.tab;
+  document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', t === b));
+  renderScores();
+}));
+$('nextBtn').addEventListener('click', grow);
+$('mGo').addEventListener('click', closeCard);
+$('restart').addEventListener('click', () => show('start'));
+$('againBtn').addEventListener('click', () => startGame(S.type));
+$('otherBtn').addEventListener('click', () => startGame(S.type === 'coffee' ? 'pasture' : 'coffee'));
+$('futureBtn').addEventListener('click', showFuture);
+$('futBack').addEventListener('click', () => { show('end'); scrollTo(0, 0); });
+$('futAgain').addEventListener('click', () => startGame(S.type));
+
+/* ---------- auto-run demo ---------- */
+const DEMO_PLANS = {
+  coffee:  [['inga',[1,10,20]], ['banana',[4,7,23]], ['avocado',[12,17]], ['cedar',[3,14]]],
+  pasture: [['shade',[1,10,20]], ['leucaena',[6,9,11,19]], ['mango',[3,22]], ['teak',[12,17]]]
+};
+const demo = {active:false, paused:false, next:'coffee'};
+const ring = $('demoRing'), cap = $('demoCap');
+let spotEl = null;
+
+function sleep(ms){
+  return new Promise((res, rej) => {
+    const tick = () => { if (!demo.active) return rej('stop'); if (demo.paused) return setTimeout(tick, 200); res(); };
+    setTimeout(tick, ms*DEMO_PACE);
+  });
+}
+async function waitFor(fn){ while (!fn()) await sleep(100); }
+function place(){
+  if (!spotEl || ring.hidden) return;
+  const r = spotEl.getBoundingClientRect(), p = 8;
+  Object.assign(ring.style, {left:(r.left-p)+'px', top:(r.top-p)+'px', width:(r.width+2*p)+'px', height:(r.height+2*p)+'px'});
+  const cw = Math.min(400, innerWidth - 24); cap.style.width = cw + 'px';
+  const ch = cap.offsetHeight, x = clamp(r.left + r.width/2 - cw/2, 12, innerWidth - cw - 12);
+  let y = r.bottom + p + 14;
+  if (y + ch > innerHeight - 70) y = r.top - p - 14 - ch;
+  if (y < 12) y = clamp(r.top + 20, 12, innerHeight - ch - 70);
+  cap.style.left = x + 'px'; cap.style.top = y + 'px';
+}
+async function spot(el, text, ms){
+  if (!el) return;
+  spotEl = el; el.scrollIntoView({block:'nearest'});
+  cap.innerHTML = text; ring.hidden = cap.hidden = false; place();
+  await sleep(ms);
+}
+async function tap(el){
+  ring.classList.remove('tap'); void ring.offsetWidth; ring.classList.add('tap');
+  await sleep(380); el.click(); await sleep(250);
+}
+function hideSpot(){ ring.hidden = cap.hidden = true; }
+
+async function runDemo(){
+  const type = demo.next; demo.next = type === 'coffee' ? 'pasture' : 'coffee';
+  const word = type === 'coffee' ? 'coffee farm' : 'cattle pasture';
+  show('start'); hideSpot(); await sleep(700);
+  const choice = document.querySelector(`.choice[data-farm="${type}"]`);
+  await spot(choice, `Every round starts by choosing a farm. Let’s play the <b>${word}</b>.`, 3400); await tap(choice);
+  await spot($('grid'), `This is your ${S.cfg.ha} ha farm, split into 24 plots. No trees yet.`, 3200);
+  await spot(document.querySelector('.nbfarm'), 'Next door is a neighbour who never plants trees. Both farms get the same weather and prices.', 4200);
+  let first = true;
+  for (const [id, cells] of DEMO_PLANS[type]){
+    const seed = document.querySelector(`.seed[data-id="${id}"]`), T = tree(id);
+    await spot(seed, `Pick a tree: <b>${T.name}</b>. ${T.when}. One tap plants ${T.per} ${unitOf(T)} for ${money(T.cost)}.`, first ? 4500 : 3200);
+    await tap(seed);
+    for (let k = 0; k < cells.length; k++){
+      const tile = $('grid').children[cells[k]];
+      await spot(tile, k === 0 ? 'Tap a plot to plant it.' : 'And another one.', first && k === 0 ? 2600 : 1000);
+      await tap(tile);
+    }
+    first = false;
+  }
+  await spot(document.querySelector('.shade'), 'The canopy meter shows how much of the farm the trees will cover once grown. We aim for about 30%. Too much shade hurts the harvest.', 5000);
+  await spot($('scores'), 'Here your farm is compared with the neighbour’s, year by year.', 3600);
+  for (let y = 1; y <= YEARS; y++){
+    if (y === 3){
+      const tab = document.querySelector('.tab[data-tab="farm"]');
+      await spot(tab, 'Switch to <b>Farm health</b> to see quality, soil, water, biodiversity, resilience and carbon.', 3800); await tap(tab);
+      await spot($('scores'), 'The trees are growing, so the farm is getting healthier than the neighbour’s.', 4200);
+      await spot($('bioStrip'), 'Biodiversity means more birds, bees and soil life. Birds eat pests, and bees help the coffee set more cherries.', 5000);
+    }
+    if (y === 5){
+      const tab = document.querySelector('.tab[data-tab="money"]');
+      await spot(tab, 'Back to <b>Money</b>. Fruit trees have started to bear, and carbon credits are paid every year from year 3.', 3200); await tap(tab);
+      await spot($('scores'), 'Compare income and costs with the neighbour.', 3600);
+    }
+    const nb = $('nextBtn');
+    await spot(nb, y === 1 ? 'Now let the farm grow one year.' : `Grow year ${y}.`, y === 1 ? 2800 : 1400);
+    await tap(nb); hideSpot();
+    await waitFor(() => !$('modal').hidden);
+    const ev = EVENTS[S.type][S.events[y-1]];
+    await spot(document.querySelector('.card .top'), `Year ${y}: <b>${ev.name}</b>.`, 2200);
+    await spot(document.querySelector('.compare'), 'What happened on your farm, and on the neighbour’s farm, this year.', y <= 2 ? 5800 : 4500);
+    await spot(document.querySelector('.fact'), 'And why the trees made the difference.', y <= 2 ? 5000 : 4000);
+    const go = $('mGo');
+    await spot(go, y === YEARS ? 'See the results after 8 years.' : 'Back to the farm.', 1300);
+    await tap(go);
+  }
+  await waitFor(() => !$('end').hidden);
+  await spot($('endTitle'), 'After 8 years…', 2600);
+  await spot($('result'), 'Your farm next to the neighbour’s: money, quality, soil, water, biodiversity, resilience and carbon.', 7000);
+  await spot($('lessons'), 'What the trees did for the farm.', 6000);
+  const ff = $('futureBtn');
+  await spot(ff, `Trees live much longer than 8 years. Let’s fast-forward to year ${PROJECT_YEARS}.`, 3400); await tap(ff);
+  await spot($('futChart'), `Money earned over ${PROJECT_YEARS} years, your farm next to the neighbour’s. The trees keep paying back long after the game ends.`, 7500);
+  await spot($('futStats'), 'Profit, carbon stored, soil and biodiversity after 30 years. The trees are never cut, so they keep storing carbon.', 6500);
+  await spot($('futAgain'), 'Want to try it on your own farm? Ask the GrowGrounds team at the stand.', 5000);
+}
+async function startDemo(){
+  if (demo.active) return;
+  demo.active = true; $('demoShield').hidden = $('demoBar').hidden = false;
+  try { while (demo.active) await runDemo(); } catch(e){}
+}
+function stopDemo(){
+  if (!demo.active) return;
+  demo.active = false; spotEl = null; hideSpot();
+  $('demoShield').hidden = $('demoBar').hidden = true;
+  show('start'); poke();
+}
+$('demoShield').addEventListener('pointerdown', e => {
+  e.preventDefault();
+  if (VERSION === 'demo'){
+    demo.paused = !demo.paused;
+    $('demoBar').textContent = demo.paused ? 'Paused · tap to continue' : 'Demo · tap to pause';
+  } else stopDemo();
+});
+addEventListener('resize', place);
+document.addEventListener('scroll', place, true);
+
+/* fair kiosk (play version): back to the start screen after IDLE_MS without touches */
+let idleT;
+function poke(){ clearTimeout(idleT); if (VERSION === 'play') idleT = setTimeout(onIdle, IDLE_MS); }
+function onIdle(){ if ($('start').hidden) show('start'); }
+['pointerdown','keydown'].forEach(ev => document.addEventListener(ev, poke, {passive:true}));
+poke();
+if (VERSION === 'demo') startDemo();
+
+/* block pinch / double-tap zoom on iPad */
+document.addEventListener('gesturestart', e => e.preventDefault());
+let lastTouch = 0;
+document.addEventListener('touchend', e => { const now = Date.now(); if (now - lastTouch < 350) e.preventDefault(); lastTouch = now; }, {passive:false});
+
+/* full screen where supported */
+const root = document.documentElement;
+const reqFs = root.requestFullscreen || root.webkitRequestFullscreen;
+if (reqFs){ $('fsBtn').hidden = false; $('fsBtn').addEventListener('click', () => { try { reqFs.call(root); } catch(e){} $('fsBtn').hidden = true; }); }
+</script>
+</body>
+</html>
