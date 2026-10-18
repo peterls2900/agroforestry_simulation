@@ -101,11 +101,12 @@ button:focus-visible{outline:4px solid var(--sun); outline-offset:3px}
 .palette{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:14px; max-width:calc((100dvh - 360px) * 1.5 + 0px)}
 .seed{
   border:3px solid var(--line); background:var(--surface); border-radius:18px; padding:10px 8px 8px; text-align:center;
-  display:grid; gap:2px; justify-items:center; min-height:104px;
+  display:grid; gap:2px; justify-items:center; min-height:122px;
 }
 .seed .e{font-size:38px; line-height:1}
 .seed .n{font-weight:700; font-size:15px; line-height:1.15}
 .seed .p{font-size:14px; color:var(--muted)}
+.seed .w{font-size:13px; font-weight:700; color:var(--you); line-height:1.15}
 .seed[aria-pressed="true"]{border-color:var(--sun); background:var(--chip); box-shadow:0 0 0 3px var(--sun) inset}
 .hint{min-height:2.9em; margin:10px 0 0; color:var(--muted); font-size:17px; max-width:60ch}
 .hint.warn{color:var(--bad); font-weight:700}
@@ -285,10 +286,10 @@ const FARMS = {
     crop:'🌿', cropName:'coffee', yield:1, price:120, cost:30, fert:15, pest:10, heatBonus:false,
     incomeLabel:'Coffee income', qualityLabel:'Coffee quality', pestLabel:'Pesticide cost', pestShort:'spraying',
     trees:[
-      {id:'inga',   icon:'🌳', name:'Inga shade tree', cost:30, mature:2, shade:1.0, buffer:1.0, nfix:1, soil:2.0, income:0,  carbon:0.5,  timber:0,   tip:'Fixes nitrogen, drops leaf mulch and cools the coffee.'},
-      {id:'banana', icon:'🍌', name:'Banana',          cost:15, mature:1, shade:0.4, buffer:0.4, nfix:0, soil:0.8, income:22, carbon:0.1,  timber:0,   tip:'Quick shade and fruit to sell from the first year.'},
-      {id:'avocado',icon:'🥑', name:'Avocado',         cost:50, mature:3, shade:0.7, buffer:0.7, nfix:0, soil:1.0, income:45, carbon:0.4,  timber:0,   tip:'Takes a few years, then gives fruit to sell every year.'},
-      {id:'cedar',  icon:'🌲', name:'Timber tree',     cost:40, mature:5, shade:0.8, buffer:0.8, nfix:0, soil:1.0, income:0,  carbon:0.8,  timber:160, tip:'Grows slowly. A savings account made of wood.'}
+      {id:'inga',   icon:'🌳', name:'Inga shade tree', cost:30, mature:3, shade:1.0, buffer:1.0, nfix:1, soil:2.0, income:0,  carbon:0.5,  timber:0,   when:'Shade from year 3', tip:'Fixes nitrogen, drops leaf mulch and cools the coffee. Nothing to sell, but it feeds the soil.'},
+      {id:'banana', icon:'🍌', name:'Banana',          cost:15, mature:1, shade:0.4, buffer:0.4, nfix:0, soil:0.8, income:22, carbon:0.1,  timber:0,   fruitFrom:1, fruitFull:1, when:'Fruit in year 1', tip:'Bunches within about a year. Quick shade and income while the slower trees grow.'},
+      {id:'avocado',icon:'🥑', name:'Avocado',         cost:50, mature:3, shade:0.7, buffer:0.7, nfix:0, soil:1.0, income:60, carbon:0.4,  timber:0,   fruitFrom:4, fruitFull:7, when:'Fruit from year 4', tip:'Grafted avocados give a small first crop around year 4, and more each year after.'},
+      {id:'cedar',  icon:'🌲', name:'Timber tree',     cost:40, mature:5, shade:0.8, buffer:0.8, nfix:0, soil:1.0, income:10, carbon:0.8,  timber:300, fruitFrom:5, fruitFull:7, when:'Firewood from year 5', tip:'Prunings give firewood from about year 5. The timber takes 15+ years: a savings account made of wood.'}
     ]
   },
   pasture: {
@@ -296,10 +297,10 @@ const FARMS = {
     crop:'🌱', cropName:'grass and milk', yield:1, price:100, cost:28, fert:12, pest:7, heatBonus:true,
     incomeLabel:'Milk and cattle income', qualityLabel:'Herd condition', pestLabel:'Tick and fly treatment', pestShort:'tick and fly treatment',
     trees:[
-      {id:'shade',   icon:'🌳', name:'Shade tree',   cost:30, mature:3, shade:1.0,  buffer:0.9, nfix:0.5, soil:1.6, income:0,  carbon:0.6,  timber:0,   tip:'Cattle rest in the shade on hot days and keep producing.'},
-      {id:'leucaena',icon:'🌿', name:'Fodder shrub', cost:10, mature:1, shade:0.25, buffer:1.3, nfix:1,   soil:1.5, income:12, carbon:0.15, timber:0,   tip:'Protein-rich leaves the cattle can eat in the dry season.'},
-      {id:'mango',   icon:'🥭', name:'Mango tree',   cost:45, mature:3, shade:0.8,  buffer:0.7, nfix:0,   soil:1.0, income:40, carbon:0.4,  timber:0,   tip:'Fruit to sell and shade for the herd.'},
-      {id:'teak',    icon:'🌲', name:'Timber tree',  cost:40, mature:5, shade:0.8,  buffer:0.8, nfix:0,   soil:1.0, income:0,  carbon:0.8,  timber:160, tip:'Plant along fences. Future timber and posts that never rot.'}
+      {id:'shade',   icon:'🌳', name:'Shade tree',   cost:30, mature:3, shade:1.0,  buffer:0.9, nfix:0.5, soil:1.6, income:0,  carbon:0.6,  timber:0,   when:'Shade from year 3', tip:'Cattle rest in the shade on hot days and keep producing.'},
+      {id:'leucaena',icon:'🌿', name:'Fodder shrub', cost:10, mature:1, shade:0.25, buffer:1.3, nfix:1,   soil:1.5, income:12, carbon:0.15, timber:0,   fruitFrom:1, fruitFull:2, when:'Fodder from year 1', tip:'Fast-growing legume. First cuts of protein-rich fodder within a year, more once established.'},
+      {id:'mango',   icon:'🥭', name:'Mango tree',   cost:45, mature:3, shade:0.8,  buffer:0.7, nfix:0,   soil:1.0, income:55, carbon:0.4,  timber:0,   fruitFrom:4, fruitFull:7, when:'Fruit from year 4', tip:'Grafted mangoes start fruiting around year 4. Shade for the herd long before that.'},
+      {id:'teak',    icon:'🌲', name:'Timber tree',  cost:40, mature:5, shade:0.8,  buffer:0.8, nfix:0,   soil:1.0, income:10, carbon:0.8,  timber:300, fruitFrom:5, fruitFull:7, when:'Firewood from year 5', tip:'Plant along fences. Prunings for firewood from about year 5, timber after 15+ years.'}
     ]
   }
 };
@@ -308,6 +309,7 @@ const EVENTS = {
   coffee: {
     good:   {icon:'🌤️', name:'A good year', facts:[
       'Nitrogen-fixing trees like inga feed the soil, so you can buy less fertiliser.',
+      'Most fruit trees take 3 to 5 years to bear. Bananas and beans between young trees bring income while you wait.',
       'Every tree stores carbon in its trunk and roots. Some buyers pay more for coffee grown under shade.',
       'More kinds of trees bring more birds, bees and other helpers to the farm.',
       'Fallen leaves become mulch. It keeps weeds down and the soil soft and alive.',
@@ -321,6 +323,7 @@ const EVENTS = {
   pasture: {
     good:   {icon:'🌤️', name:'A good year', facts:[
       'Fodder shrubs fix nitrogen, so the grass around them grows greener without extra fertiliser.',
+      'Fruit trees take 3 to 5 years to bear. Fodder shrubs pay back sooner, with feed from the first year.',
       'Trees on pasture bring up water and nutrients from deep soil and return them with their leaves.',
       'Every tree stores carbon in its trunk and roots, which can open doors to carbon programmes.',
       'Living fences of trees replace posts that rot and give fodder, firewood and shade.',
@@ -365,18 +368,28 @@ function show(id){ ['start','game','end'].forEach(s => $(s).hidden = s !== id); 
 
 /* ---------- model ---------- */
 function maturity(t, y){ return clamp((y - t.planted) / tree(t.id).mature, 0, 1); }
-function bioScore(farm){
-  const ids = Object.values(farm.trees).map(t => t.id);
-  return Math.round(Math.min(100, 8 + new Set(ids).size * 12 + ids.length * 2.2));
+/* wildlife builds up as trees grow: saplings count a little, grown trees count fully */
+function bioScore(farm, y = S.year){
+  let w = 0; const kinds = new Set();
+  for (const t of Object.values(farm.trees)){
+    const m = Math.max(0.15, maturity(t, y)); w += m;
+    if (m >= 0.3) kinds.add(t.id);
+  }
+  return Math.round(Math.min(100, 8 + kinds.size * 12 + w * 2.2));
 }
 function fullShade(farm){ return Object.values(farm.trees).reduce((s,t) => s + tree(t.id).shade, 0) / CELLS; }
 
+/* income only starts once a tree bears, then ramps up to full production */
+function incomeOf(T, age){
+  if (!T.fruitFrom || age < T.fruitFrom) return 0;
+  return T.income * clamp((age - T.fruitFrom + 1)/(T.fruitFull - T.fruitFrom + 1), 0, 1);
+}
 function treeSums(farm, y){
-  const s = {shade:0, buffer:0, nfix:0, soilG:0, treeInc:0, carb:0, cover:0, n:0};
+  const s = {shade:0, buffer:0, nfix:0, soilG:0, treeInc:0, carb:0, cover:0, n:0, care:0};
   for (const k in farm.trees){
     const t = farm.trees[k], T = tree(t.id), m = maturity(t, y);
     s.n++; s.shade += T.shade*m; s.buffer += T.buffer*m; s.nfix += T.nfix*m; s.soilG += T.soil*m;
-    s.treeInc += T.income*m*m; s.carb += T.carbon*m; s.cover += m;
+    s.treeInc += incomeOf(T, y - t.planted); s.care += (y - t.planted) <= 2 ? 14 : 0; s.carb += T.carbon*m; s.cover += m;
   }
   s.Sh = s.shade / CELLS;
   return s;
@@ -396,7 +409,7 @@ function simulate(farm, y, ev){
   const cfg = S.cfg, s = treeSums(farm, y), Sh = s.Sh;
   let shadeEff = Sh <= 0.4 ? 1 - 0.1*Sh : 0.96 - (Sh - 0.4)*1.1;
   if (cfg.heatBonus) shadeEff *= 1 + 0.05*Math.min(1, Sh/0.3);
-  const bio = bioScore(farm);
+  const bio = bioScore(farm, y);
   const guard = Math.min(0.9, (s.cover + s.n*0.2)/CELLS*2.2);
   const dSoil = s.soilG/CELLS*3 - 1.5 - (ev.soilHit || 0)*(1 - guard);
   farm.soil = clamp(farm.soil + dSoil, 5, 100);
@@ -415,7 +428,7 @@ function simulate(farm, y, ev){
   const cropInc = CELLS*cfg.yield*shadeEff*soilMult*(1 - loss)*cfg.price*(ev.price || 1)*premium;
   const fertFull = CELLS*cfg.fert, fert = fertFull*(1 - Math.min(0.5, s.nfix/CELLS*1.5));
   const pestFull = CELLS*cfg.pest*(ev.pest ? 2 : 1), pest = pestFull*(1 - Math.min(0.6, (bio - 8)/92*0.8));
-  const profit = cropInc + s.treeInc - CELLS*cfg.cost - fert - pest;
+  const profit = cropInc + s.treeInc - CELLS*cfg.cost - fert - pest - s.care;
   farm.cash += profit; farm.carbon += s.carb; farm.lastProfit = profit;
   farm.tot.crop += cropInc; farm.tot.tree += s.treeInc; farm.tot.fert += fert; farm.tot.pest += pest;
   farm.last = {cropInc, treeInc: s.treeInc, fert, pest, quality};
@@ -455,7 +468,7 @@ function renderGrid(){
 }
 function buildPalette(){
   $('palette').innerHTML = S.cfg.trees.map(T =>
-    `<button class="seed" data-id="${T.id}" aria-pressed="${T.id===S.sel}"><span class="e">${T.icon}</span><span class="n">${T.name}</span><span class="p">${money(T.cost)}</span></button>`
+    `<button class="seed" data-id="${T.id}" aria-pressed="${T.id===S.sel}"><span class="e">${T.icon}</span><span class="n">${T.name}</span><span class="p">${money(T.cost)}</span><span class="w">${T.when}</span></button>`
   ).join('');
 }
 function renderScores(){
@@ -557,6 +570,7 @@ function showCard(key, ev, r1, r2){
   nb.push(`${S.cfg.qualityLabel} ${Math.round(r2.quality)}/100`);
   you.push(r1.dSoil >= 0 ? 'Soil got healthier' : 'Soil got a little weaker');
   nb.push(r2.dSoil >= 0 ? 'Soil held steady' : (ev.soilHit ? 'Rain washed topsoil away' : 'Bare soil got weaker'));
+  if (S.year <= 3 && r1.profit < r2.profit && Object.keys(S.you.trees).length) you.push('Young trees cost money and care before they pay back. Fast crops like bananas or fodder shrubs help bridge the gap');
   if (Object.keys(S.you.trees).length === 0) you.push('No trees yet. Plant some to see what changes');
   $('mYouList').innerHTML = you.map(s => `<li>${s}</li>`).join('');
   $('mNbList').innerHTML = nb.map(s => `<li>${s}</li>`).join('');
@@ -573,7 +587,7 @@ function closeCard(){
 
 function showEnd(){
   const y = S.you, n = S.nb;
-  const timber = Object.values(y.trees).reduce((s,t) => s + tree(t.id).timber*maturity(t, YEARS), 0);
+  const timber = Object.values(y.trees).reduce((s,t) => s + tree(t.id).timber*clamp((YEARS - t.planted)/15, 0, 1), 0);
   const yEarn = y.cash - START_CASH, nEarn = n.cash - START_CASH;
   const yTotal = yEarn + timber;
   const sy = treeSums(y, YEARS), sn = treeSums(n, YEARS), cfg = S.cfg;
@@ -584,7 +598,7 @@ function showEnd(){
     ['Fruit and tree income', money(y.tot.tree), money(n.tot.tree)],
     ['Spent on fertiliser', money(y.tot.fert), money(n.tot.fert)],
     ['Spent on ' + cfg.pestShort, money(y.tot.pest), money(n.tot.pest)],
-    ['Timber standing on the farm', money(timber), money(0)],
+    ['Young timber (harvest after year 15)', money(timber), money(0)],
     [cfg.qualityLabel, Math.round(y.last.quality) + '/100', Math.round(n.last.quality) + '/100'],
     ['Soil health', Math.round(y.soil) + '/100', Math.round(n.soil) + '/100'],
     ['Soil moisture', Math.round(y.moisture) + '/100', Math.round(n.moisture) + '/100'],
