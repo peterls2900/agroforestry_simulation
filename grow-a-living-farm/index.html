@@ -204,7 +204,7 @@ button:focus-visible{outline:4px solid var(--sun); outline-offset:3px}
     <h1>Plant trees and watch your farm change</h1>
     <p class="lead">Eight years of real weather. Your neighbour plants no trees. Who ends up ahead?</p>
     <div class="choices">
-      <button class="choice" data-farm="coffee"><span class="ico">☕</span><b>Coffee farm</b><small>Shade trees, fruit and timber among the coffee</small></button>
+      <button class="choice" data-farm="coffee"><span class="ico">☕</span><b>Coffee farm</b><small>Shade trees, fruit and native trees among the coffee</small></button>
       <button class="choice" data-farm="pasture"><span class="ico">🐄</span><b>Cattle pasture</b><small>Shade, fodder shrubs and fruit trees for the herd</small></button>
     </div>
     <ol class="how">
@@ -289,7 +289,7 @@ const FARMS = {
       {id:'inga',   icon:'🌳', name:'Inga shade tree', cost:30, mature:3, shade:1.0, buffer:1.0, nfix:1, soil:2.0, income:0,  carbon:0.5,  timber:0,   when:'Shade from year 3', tip:'Fixes nitrogen, drops leaf mulch and cools the coffee. Nothing to sell, but it feeds the soil.'},
       {id:'banana', icon:'🍌', name:'Banana',          cost:15, mature:1, shade:0.4, buffer:0.4, nfix:0, soil:0.8, income:22, carbon:0.1,  timber:0,   fruitFrom:1, fruitFull:1, when:'Fruit in year 1', tip:'Bunches within about a year. Quick shade and income while the slower trees grow.'},
       {id:'avocado',icon:'🥑', name:'Avocado',         cost:50, mature:3, shade:0.7, buffer:0.7, nfix:0, soil:1.0, income:60, carbon:0.4,  timber:0,   fruitFrom:4, fruitFull:7, when:'Fruit from year 4', tip:'Grafted avocados give a small first crop around year 4, and more each year after.'},
-      {id:'cedar',  icon:'🌲', name:'Timber tree',     cost:40, mature:5, shade:0.8, buffer:0.8, nfix:0, soil:1.0, income:10, carbon:0.8,  timber:300, fruitFrom:5, fruitFull:7, when:'Firewood from year 5', tip:'Prunings give firewood from about year 5. The timber takes 15+ years: a savings account made of wood.'}
+      {id:'cedar',  icon:'🌲', name:'Native forest tree', cost:40, mature:5, shade:0.8, buffer:0.8, nfix:0, soil:1.0, income:0,  carbon:1.0,  timber:0,   when:'Carbon for 30+ years', tip:'A long-lived native tree that stays standing. It stores the most carbon and gives birds a home.'}
     ]
   },
   pasture: {
@@ -300,7 +300,7 @@ const FARMS = {
       {id:'shade',   icon:'🌳', name:'Shade tree',   cost:30, mature:3, shade:1.0,  buffer:0.9, nfix:0.5, soil:1.6, income:0,  carbon:0.6,  timber:0,   when:'Shade from year 3', tip:'Cattle rest in the shade on hot days and keep producing.'},
       {id:'leucaena',icon:'🌿', name:'Fodder shrub', cost:10, mature:1, shade:0.25, buffer:1.3, nfix:1,   soil:1.5, income:12, carbon:0.15, timber:0,   fruitFrom:1, fruitFull:2, when:'Fodder from year 1', tip:'Fast-growing legume. First cuts of protein-rich fodder within a year, more once established.'},
       {id:'mango',   icon:'🥭', name:'Mango tree',   cost:45, mature:3, shade:0.8,  buffer:0.7, nfix:0,   soil:1.0, income:55, carbon:0.4,  timber:0,   fruitFrom:4, fruitFull:7, when:'Fruit from year 4', tip:'Grafted mangoes start fruiting around year 4. Shade for the herd long before that.'},
-      {id:'teak',    icon:'🌲', name:'Timber tree',  cost:40, mature:5, shade:0.8,  buffer:0.8, nfix:0,   soil:1.0, income:10, carbon:0.8,  timber:300, fruitFrom:5, fruitFull:7, when:'Firewood from year 5', tip:'Plant along fences. Prunings for firewood from about year 5, timber after 15+ years.'}
+      {id:'teak',    icon:'🌲', name:'Native forest tree', cost:40, mature:5, shade:0.8,  buffer:0.8, nfix:0,   soil:1.0, income:0,  carbon:1.0,  timber:0,   when:'Carbon for 30+ years', tip:'A long-lived native tree that stays standing, along fences or in the field. It stores the most carbon.'}
     ]
   }
 };
@@ -317,7 +317,7 @@ const EVENTS = {
     drought:{icon:'☀️', name:'Drought', hit:0.35, fx:'drought', fact:'Tree roots and fallen leaves keep moisture in the soil, so coffee under shade holds on longer when the rain fails.'},
     heat:   {icon:'🌡️', name:'Heat wave', hit:0.25, fx:'heat', fact:'Shade keeps coffee leaves several degrees cooler. That protects the flowers and the young cherries.'},
     rain:   {icon:'🌧️', name:'Heavy rains', hit:0.12, soilHit:8, fx:'rain', fact:'Roots and leaf litter hold the soil in place. On bare slopes, storms wash the fertile topsoil away.'},
-    price:  {icon:'📉', name:'Coffee price falls', price:0.65, fact:'Fruit, timber and firewood bring money that does not depend on the coffee price.'},
+    price:  {icon:'📉', name:'Coffee price falls', price:0.65, fact:'Bananas, avocados and other fruit bring money that does not depend on the coffee price.'},
     pest:   {icon:'🐛', name:'Berry borer attack', hit:0.22, pest:true, fact:'Birds and insects that live in the trees eat pests like the coffee berry borer. Free pest control, and less money spent on spraying.'}
   },
   pasture: {
@@ -326,13 +326,13 @@ const EVENTS = {
       'Fruit trees take 3 to 5 years to bear. Fodder shrubs pay back sooner, with feed from the first year.',
       'Trees on pasture bring up water and nutrients from deep soil and return them with their leaves.',
       'Every tree stores carbon in its trunk and roots, which can open doors to carbon programmes.',
-      'Living fences of trees replace posts that rot and give fodder, firewood and shade.',
+      'Living fences of trees replace posts that rot, and give fodder and shade for years to come.',
       'Cattle that rest in the shade stay in better condition, which shows in milk yield and sale weight.',
       'Birds and dung beetles that live around trees help keep ticks and flies down, so you spend less on treatments.']},
     drought:{icon:'☀️', name:'Long dry season', hit:0.35, fx:'drought', fact:'Fodder shrubs stay green when the grass dries out, so the cattle still get protein through the dry months.'},
     heat:   {icon:'🌡️', name:'Heat wave', hit:0.25, fx:'heat', fact:'Cattle with shade suffer less heat stress, so they keep eating and keep giving milk and gaining weight.'},
     rain:   {icon:'🌧️', name:'Heavy rains', hit:0.12, soilHit:8, fx:'rain', fact:'Tree roots hold the soil. On bare, trampled pasture, heavy rain washes the topsoil away.'},
-    price:  {icon:'📉', name:'Milk price falls', price:0.65, fact:'Fruit and timber bring money that does not depend on the milk or beef price.'}
+    price:  {icon:'📉', name:'Milk price falls', price:0.65, fact:'Mangoes and other fruit bring money that does not depend on the milk or beef price.'}
   }
 };
 const COWS = [2, 7, 13, 16, 22];
@@ -589,7 +589,7 @@ function showEnd(){
   const y = S.you, n = S.nb;
   const timber = Object.values(y.trees).reduce((s,t) => s + tree(t.id).timber*clamp((YEARS - t.planted)/15, 0, 1), 0);
   const yEarn = y.cash - START_CASH, nEarn = n.cash - START_CASH;
-  const yTotal = yEarn + timber;
+  const yTotal = yEarn;
   const sy = treeSums(y, YEARS), sn = treeSums(n, YEARS), cfg = S.cfg;
   const rows = [
     ['', 'You', 'Neighbour'],
@@ -598,7 +598,6 @@ function showEnd(){
     ['Fruit and tree income', money(y.tot.tree), money(n.tot.tree)],
     ['Spent on fertiliser', money(y.tot.fert), money(n.tot.fert)],
     ['Spent on ' + cfg.pestShort, money(y.tot.pest), money(n.tot.pest)],
-    ['Young timber (harvest after year 15)', money(timber), money(0)],
     [cfg.qualityLabel, Math.round(y.last.quality) + '/100', Math.round(n.last.quality) + '/100'],
     ['Soil health', Math.round(y.soil) + '/100', Math.round(n.soil) + '/100'],
     ['Soil moisture', Math.round(y.moisture) + '/100', Math.round(n.moisture) + '/100'],
@@ -625,8 +624,8 @@ function showEnd(){
     $('endLead').textContent = 'Your soil and wildlife are already ahead. Trees planted later need more years to pay back. Try planting earlier.';
   }
   const L = S.type === 'coffee'
-    ? [['🛡️','Shade and moist soil soften droughts, heat waves and pest attacks.'],['☕','Coffee ripening under moderate shade often gives a better cup and a better price.'],['💰','Fruit and timber give income when the coffee price drops.'],['🌱','Healthy soil and more wildlife mean less money spent on fertiliser and spraying.']]
-    : [['🐄','Shaded cattle stay in better condition and keep producing in the heat.'],['🌿','Fodder shrubs feed the herd when the grass is dry.'],['💰','Fruit and timber give income when the milk price drops.'],['🌱','Healthy soil and more wildlife mean less spent on fertiliser and tick treatment.']];
+    ? [['🛡️','Shade and moist soil soften droughts, heat waves and pest attacks.'],['☕','Coffee ripening under moderate shade often gives a better cup and a better price.'],['💰','Bananas and fruit trees give income when the coffee price drops.'],['🌱','Healthy soil and more wildlife mean less money spent on fertiliser and spraying.']]
+    : [['🐄','Shaded cattle stay in better condition and keep producing in the heat.'],['🌿','Fodder shrubs feed the herd when the grass is dry.'],['💰','Fruit trees give income when the milk price drops.'],['🌱','Healthy soil and more wildlife mean less spent on fertiliser and tick treatment.']];
   $('lessons').innerHTML = L.map(l => `<li><b>${l[0]}</b>${l[1]}</li>`).join('');
   show('end');
 }
