@@ -2,11 +2,16 @@
 
 A touch-friendly educational game that shows coffee and cattle farmers the benefits of agroforestry. Built for iPad (Safari, landscape) at farmer fairs and cooperative events.
 
-Players plant shade, fruit, fodder and timber trees, then grow their farm through 8 years of weather and market events, side by side with a neighbour who plants no trees.
+Players plant shade, fruit, fodder and native forest trees, then grow their farm through 8 years of weather and market events, side by side with a neighbour who plants no trees.
 
-## Play it
+## Two versions
 
-Open `index.html` in any modern browser. No build step or server is needed.
+- `index.html` is the playable game. Visitors choose a farm, plant trees and grow the farm themselves.
+- `demo.html` plays the game by itself in a loop, with a red frame and a caption on every action. Tap the screen to pause and tap again to continue. On Netlify it is at `/demo.html`.
+
+Both open in any modern browser. No build step or server is needed.
+
+Both files are the same code. The only difference is one line near the top of the script: `const VERSION = 'play';` or `const VERSION = 'demo';`. After changing the game, copy `index.html` to `demo.html` and change that line.
 
 ## Publish with Netlify
 
@@ -25,7 +30,8 @@ On the iPad, open the link in Safari and choose **Share → Add to Home Screen**
 
 ## Kiosk behaviour
 
-- Returns to the start screen after 2.5 minutes without a touch (`IDLE_MS` in the script).
+- Play version: returns to the start screen after 2.5 minutes without a touch (`IDLE_MS`).
+- Demo version: loops coffee and pasture rounds; `DEMO_PACE` sets the speed (1.5 = 50% slower).
 - Pinch and double-tap zoom are blocked.
 - Works offline once loaded; fonts fall back to system fonts if there is no connection.
 
