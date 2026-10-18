@@ -2,7 +2,7 @@
 
 A touch-friendly educational game that shows coffee and cattle farmers the benefits of agroforestry. Built for iPad (Safari, landscape) at farmer fairs and cooperative events.
 
-Players plant shade, fruit, fodder and native forest trees, then grow their farm through 8 years of weather and market events, side by side with a neighbour who plants no trees.
+Players plant shade, fruit, fodder and native forest trees, then grow their farm through 8 years of weather and market events, side by side with a neighbour who plants no trees. The end screen can then fast-forward both farms to year 30.
 
 ## Two versions
 
@@ -31,7 +31,7 @@ On the iPad, open the link in Safari and choose **Share → Add to Home Screen**
 ## Kiosk behaviour
 
 - Play version: returns to the start screen after 2.5 minutes without a touch (`IDLE_MS`).
-- Demo version: loops coffee and pasture rounds; `DEMO_PACE` sets the speed (1.5 = 50% slower).
+- Demo version: loops coffee and pasture rounds, including the 30-year view; `DEMO_PACE` sets the speed (1 = normal, 1.5 = 50% slower).
 - Pinch and double-tap zoom are blocked.
 - Works offline once loaded; fonts fall back to system fonts if there is no connection.
 
@@ -42,12 +42,15 @@ All numbers and texts sit at the top of the `<script>` block in `index.html`:
 - `FARMS` — tree types, costs, income, shade, carbon and the tips shown when a tree is selected.
 - `EVENTS` — yearly events, how hard they hit, and the fact shown after each year.
 - `START_CASH`, `YEARS` — starting money and game length.
+- `PROJECT_YEARS` — how far the end screen fast-forwards (30).
 
 ## What the game measures
 
 Money tab: profit, money in the bank, coffee (or milk and cattle) income, fruit and tree income, fertiliser cost, pesticide (or tick and fly treatment) cost.
 
 Farm health tab: coffee quality (or herd condition), soil health, soil moisture, wildlife, resilience, carbon stored.
+
+30-year view: after the 8 years, "Fast-forward to year 30" keeps the player's trees, repeats the weather they just played, and draws money earned since planting for both farms. It also shows extra profit, carbon stored, soil health and wildlife at year 30. Trees are never cut.
 
 The model is illustrative, not a forecast. Review the figures and fact texts with your agronomy team before using it with farmers.
 

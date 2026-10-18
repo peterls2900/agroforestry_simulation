@@ -185,6 +185,36 @@ button:focus-visible{outline:4px solid var(--sun); outline-offset:3px}
 .end-btns .next{margin:0; flex:1 1 240px; font-size:26px}
 .end-btns .alt{flex:1 1 200px; border:3px solid #ffffff88; background:transparent; color:#fff; border-radius:22px; font-family:'Baloo 2',system-ui,sans-serif; font-size:24px; font-weight:700; padding:14px}
 .foot{margin-top:18px; color:#BFDCCB; font-size:15px}
+.ff-btn{display:flex; align-items:center; justify-content:center; gap:12px; width:100%; margin:0 0 14px; border:0; border-radius:22px; padding:16px;
+  background:#fff; color:#1F4D3A; font-family:'Baloo 2',system-ui,sans-serif; font-size:26px; font-weight:800; box-shadow:0 6px 0 #B9D6C3}
+.ff-btn:active{transform:translateY(4px); box-shadow:0 2px 0 #B9D6C3}
+
+/* ---------- 30-year view ---------- */
+#future{min-height:100%; background:var(--canopy); color:#fff; display:grid; place-items:center; padding:24px 28px}
+#future .lead{font-size:20px; color:#DCEFE3; max-width:60ch; margin:8px 0 16px}
+#future h1{font-size:clamp(36px,5vw,58px); font-weight:800}
+.fchart{background:#fff; color:#15261E; border-radius:24px; padding:14px 16px 6px}
+.fchart h3{font-size:20px; font-weight:800; margin:0 4px 4px}
+.fchart svg{display:block; width:100%; height:auto}
+.fchart .gl{stroke:#DDE8E1; stroke-width:1}
+.fchart .gl.zero{stroke:#9DB5A6; stroke-width:1.5}
+.fchart .ax{fill:#4A5F54; font-size:15px; font-family:'Atkinson Hyperlegible',system-ui,sans-serif}
+.fchart .band{fill:#5E9E45; opacity:.09}
+.fchart .mark{stroke:#1F4D3A; stroke-width:2; stroke-dasharray:5 5}
+.fchart .mk{fill:#1F4D3A; font-size:15px; font-weight:700; font-family:'Atkinson Hyperlegible',system-ui,sans-serif}
+.fchart .ln{fill:none; stroke-width:5; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:1; animation:draw 2.6s ease-out both}
+.fchart .ln.y{stroke:#2E7D4F} .fchart .ln.n{stroke:#A0683A; stroke-width:4}
+.fchart .el{font-family:'Baloo 2',system-ui,sans-serif; font-size:20px; font-weight:800}
+.fchart .el.y{fill:#2E7D4F} .fchart .el.n{fill:#A0683A}
+.fchart .dot.y{fill:#2E7D4F} .fchart .dot.n{fill:#A0683A}
+@keyframes draw{from{stroke-dashoffset:1} to{stroke-dashoffset:0}}
+.fstats{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:14px 0 18px}
+.fstats > div{background:#ffffff14; border-radius:18px; padding:12px 14px}
+.fstats .ic{font-size:26px; line-height:1}
+.fstats .lb{font-size:15px; color:#DCEFE3; margin-top:4px}
+.fstats .big{font-family:'Baloo 2',system-ui,sans-serif; font-size:32px; font-weight:800; line-height:1.1}
+.fstats .sm{font-size:14px; color:#BFDCCB}
+@media (max-width:760px){ .fstats{grid-template-columns:repeat(2,1fr)} }
 @media (max-width:760px){ .choices,.lessons,.compare{grid-template-columns:1fr} .result{grid-template-columns:1.3fr 1fr 1fr} }
 
 .demo-btn{margin-top:18px; width:100%; border:3px solid #ffffff88; background:transparent; color:#fff; border-radius:22px; padding:14px; font-family:'Baloo 2',system-ui,sans-serif; font-size:24px; font-weight:700}
@@ -214,7 +244,7 @@ button:focus-visible{outline:4px solid var(--sun); outline-offset:3px}
   </div>
   <div class="start-inner">
     <h1>Plant trees and watch your farm change</h1>
-    <p class="lead">Eight years of real weather. Your neighbour plants no trees. Who ends up ahead?</p>
+    <p class="lead">Eight years of droughts, heat, rain and price drops, then a look 30 years ahead. Your neighbour plants no trees. Who ends up ahead?</p>
     <div class="choices">
       <button class="choice" data-farm="coffee"><span class="ico">☕</span><b>Coffee farm</b><small>Shade trees, fruit and native trees among the coffee</small></button>
       <button class="choice" data-farm="pasture"><span class="ico">🐄</span><b>Cattle pasture</b><small>Shade, fodder shrubs and fruit trees for the herd</small></button>
@@ -268,11 +298,26 @@ button:focus-visible{outline:4px solid var(--sun); outline-offset:3px}
     <p class="lead" id="endLead"></p>
     <div class="result" id="result"></div>
     <ul class="lessons" id="lessons"></ul>
+    <button class="ff-btn" id="futureBtn"><span aria-hidden="true">⏩</span> Fast-forward to year 30</button>
     <div class="end-btns">
       <button class="next" id="againBtn">Play again</button>
       <button class="alt" id="otherBtn">Try the other farm</button>
     </div>
     <p class="foot">An illustrative model, not a forecast. Ask the GrowGrounds team at the stand what this could look like on your farm.</p>
+  </div>
+</section>
+
+<section id="future" hidden>
+  <div class="end-inner">
+    <h1 id="futTitle">30 years on</h1>
+    <p class="lead" id="futLead"></p>
+    <div class="fchart" id="futChart"><h3>Money earned since planting</h3><div id="futSvg"></div></div>
+    <div class="fstats" id="futStats"></div>
+    <div class="end-btns">
+      <button class="next" id="futAgain">Play again</button>
+      <button class="alt" id="futBack">Back to 8-year results</button>
+    </div>
+    <p class="foot">Fast-forward: the same trees, the same mix of weather repeated every 8 years, and today's prices. No trees are cut. An illustrative model, not a forecast.</p>
   </div>
 </section>
 
@@ -295,6 +340,8 @@ button:focus-visible{outline:4px solid var(--sun); outline-offset:3px}
 
 <script>
 const YEARS = 8, CELLS = 24, START_CASH = 1500, IDLE_MS = 150000;
+/* the end screen can fast-forward the farm to this year (same trees, the played weather repeated) */
+const PROJECT_YEARS = 30;
 /* VERSION 'play' = visitors play themselves (index.html); 'demo' = the game plays itself in a loop, tap to pause (demo.html) */
 const VERSION = 'demo';
 /* demo: DEMO_PACE 1 = normal, 1.5 = 50% slower */
@@ -374,7 +421,7 @@ function makeEvents(type){
 
 function startGame(type){
   const cfg = FARMS[type];
-  S = {type, cfg, year:0, you:newFarm(), nb:newFarm(), events:makeEvents(type), sel:cfg.trees[0].id, newCell:null};
+  S = {type, cfg, year:0, you:newFarm(), nb:newFarm(), events:makeEvents(type), sel:cfg.trees[0].id, newCell:null, hist:[]};
   $('farmTitle').textContent = cfg.title;
   $('nbTitle').textContent = cfg.nbTitle;
   show('game');
@@ -384,7 +431,7 @@ function startGame(type){
   setHint('Pick a tree below, then tap your field to plant it. Trees cost money now and pay back later.');
 }
 
-function show(id){ ['start','game','end'].forEach(s => $(s).hidden = s !== id); $('modal').hidden = true; }
+function show(id){ ['start','game','end','future'].forEach(s => $(s).hidden = s !== id); $('modal').hidden = true; }
 
 /* ---------- model ---------- */
 function maturity(t, y){ return clamp((y - t.planted) / tree(t.id).mature, 0, 1); }
@@ -557,8 +604,9 @@ function plant(i){
 function grow(){
   if (S.year >= YEARS){ showEnd(); return; }
   const y = S.year + 1, key = S.events[y-1], ev = EVENTS[S.type][key];
+  if (y === 1) S.hist = [point(0)];
   const r1 = simulate(S.you, y, ev), r2 = simulate(S.nb, y, ev);
-  S.year = y;
+  S.year = y; S.hist.push(point(y));
   playFx(ev.fx, ev.icon, () => { render(); showCard(key, ev, r1, r2); });
 }
 
@@ -651,6 +699,73 @@ function showEnd(){
   show('end');
 }
 
+/* ---------- 30-year fast-forward ---------- */
+function point(y, you = S.you, nb = S.nb){ return {y, you:you.cash - START_CASH, nb:nb.cash - START_CASH, cy:you.carbon, cn:nb.carbon}; }
+/* keep the same trees and repeat the weather the player just had, up to PROJECT_YEARS */
+function project(){
+  const you = JSON.parse(JSON.stringify(S.you)), nb = JSON.parse(JSON.stringify(S.nb));
+  const hist = S.hist.slice();
+  for (let y = YEARS + 1; y <= PROJECT_YEARS; y++){
+    const ev = EVENTS[S.type][S.events[(y - 1) % YEARS]];
+    simulate(you, y, ev); simulate(nb, y, ev);
+    hist.push(point(y, you, nb));
+  }
+  return {hist, you, nb};
+}
+function niceStep(x){ const p = Math.pow(10, Math.floor(Math.log10(x || 1))); for (const m of [1, 2, 2.5, 5, 10]) if (m*p >= x) return m*p; return 10*p; }
+function shortMoney(v){ const a = Math.abs(v); const t = a >= 1000 ? (a/1000).toFixed(a % 1000 ? 1 : 0).replace(/\.0$/, '') + 'k' : Math.round(a); return (v < 0 ? '−' : '') + '$' + t; }
+function chartSVG(h){
+  const W = 820, H = 280, L = 62, R = 150, T = 30, B = 34;
+  const vals = h.flatMap(p => [p.you, p.nb]);
+  let lo = Math.min(0, ...vals), hi = Math.max(1, ...vals);
+  if (lo < 0 && -lo < (hi - lo)*0.04) lo = 0;   /* the small planting dip needs no extra gridline */
+  const step = niceStep((hi - lo)/4); lo = Math.floor(lo/step)*step; hi = Math.ceil(hi/step)*step;
+  const X = y => L + (W - L - R)*y/PROJECT_YEARS, Y = v => T + (H - T - B)*(hi - v)/(hi - lo);
+  let g = `<rect class="band" x="${X(YEARS)}" y="${T - 22}" width="${X(PROJECT_YEARS) - X(YEARS)}" height="${H - B - T + 22}"/>`;
+  g += `<text class="mk" x="${(X(YEARS) + X(PROJECT_YEARS))/2}" y="${T - 6}" text-anchor="middle">Fast-forward ⏩</text>`;
+  for (let v = lo; v <= hi + 1e-6; v += step)
+    g += `<line class="gl${Math.abs(v) < 1e-6 ? ' zero' : ''}" x1="${L}" x2="${X(PROJECT_YEARS)}" y1="${Y(v)}" y2="${Y(v)}"/><text class="ax" x="${L - 8}" y="${Y(v) + 5}" text-anchor="end">${shortMoney(v)}</text>`;
+  for (let y = 0; y <= PROJECT_YEARS; y += 5)
+    g += `<text class="ax" x="${X(y)}" y="${H - 8}" text-anchor="middle">${y === 0 ? 'Start' : 'Year ' + y}</text>`;
+  g += `<line class="mark" x1="${X(YEARS)}" x2="${X(YEARS)}" y1="${T - 22}" y2="${H - B}"/>`;
+  g += `<text class="mk" x="${X(YEARS) - 8}" y="${T - 6}" text-anchor="end">You played ${YEARS} years</text>`;
+  const path = k => h.map((p, i) => (i ? 'L' : 'M') + X(p.y).toFixed(1) + ' ' + Y(p[k]).toFixed(1)).join(' ');
+  g += `<path class="ln n" pathLength="1" d="${path('nb')}"/><path class="ln y" pathLength="1" d="${path('you')}"/>`;
+  const last = h[h.length - 1], xe = X(PROJECT_YEARS);
+  let yy = Y(last.you), yn = Y(last.nb);
+  if (Math.abs(yy - yn) < 44){ const mid = (yy + yn)/2, up = last.you >= last.nb ? -1 : 1; yy = mid + up*22; yn = mid - up*22; }
+  g += `<circle class="dot y" cx="${xe}" cy="${Y(last.you)}" r="7"/><circle class="dot n" cx="${xe}" cy="${Y(last.nb)}" r="6"/>`;
+  g += `<text class="el y" x="${xe + 14}" y="${yy - 2}">You</text><text class="ax" x="${xe + 14}" y="${yy + 17}">${money(last.you)}</text>`;
+  g += `<text class="el n" x="${xe + 14}" y="${yn - 2}">Neighbour</text><text class="ax" x="${xe + 14}" y="${yn + 17}">${money(last.nb)}</text>`;
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Money earned over ${PROJECT_YEARS} years: you ${money(last.you)}, neighbour ${money(last.nb)}">${g}</svg>`;
+}
+function showFuture(){
+  const P = project(), h = P.hist, last = h[h.length - 1], diff = last.you - last.nb;
+  const treesN = Object.keys(S.you.trees).length;
+  let pay = null;
+  for (const p of h) if (p.y > 0 && p.you >= p.nb){ pay = p.y; break; }
+  if (!treesN){
+    $('futTitle').textContent = `${PROJECT_YEARS} years on: still the same farm`;
+    $('futLead').textContent = 'Without trees, both farms face every bad year alone, and the bare soil keeps getting weaker. Play again and plant some trees.';
+  } else if (diff > 0){
+    $('futTitle').textContent = `${PROJECT_YEARS} years on: ${money(diff)} ahead`;
+    $('futLead').textContent = (pay ? `Your trees caught up with the neighbour in year ${pay}, and they keep paying back. ` : 'Your trees keep paying back. ')
+      + 'They are never cut, so they keep protecting the farm and storing carbon year after year.';
+  } else {
+    $('futTitle').textContent = `${PROJECT_YEARS} years on`;
+    $('futLead').textContent = `Soil, wildlife and carbon keep improving, but the field is so shady that the ${S.cfg.cropName} earns less than the neighbour's. Try fewer, well-spaced trees.`;
+  }
+  $('futSvg').innerHTML = chartSVG(h);
+  const st = [
+    ['💰', `Extra profit over ${PROJECT_YEARS} years`, money(diff), `You ${money(last.you)} · neighbour ${money(last.nb)}`],
+    ['🌍', 'Carbon stored', Math.round(last.cy) + ' t CO₂', `Neighbour ${Math.round(last.cn)} t · after ${YEARS} years: ${S.you.carbon.toFixed(1)} t`],
+    ['🌱', 'Soil health', Math.round(P.you.soil) + '/100', `Neighbour ${Math.round(P.nb.soil)}/100`],
+    ['🐦', 'Wildlife', bioScore(P.you, PROJECT_YEARS) + '/100', `Neighbour ${bioScore(P.nb, PROJECT_YEARS)}/100`]
+  ];
+  $('futStats').innerHTML = st.map(s => `<div><div class="ic">${s[0]}</div><div class="lb">${s[1]}</div><div class="big">${s[2]}</div><div class="sm">${s[3]}</div></div>`).join('');
+  show('future'); scrollTo(0, 0);
+}
+
 /* ---------- wiring ---------- */
 document.querySelectorAll('.choice').forEach(b => b.addEventListener('click', () => startGame(b.dataset.farm)));
 $('grid').addEventListener('click', e => { const b = e.target.closest('.tile'); if (b) plant(+b.dataset.i); });
@@ -670,6 +785,9 @@ $('mGo').addEventListener('click', closeCard);
 $('restart').addEventListener('click', () => show('start'));
 $('againBtn').addEventListener('click', () => startGame(S.type));
 $('otherBtn').addEventListener('click', () => startGame(S.type === 'coffee' ? 'pasture' : 'coffee'));
+$('futureBtn').addEventListener('click', showFuture);
+$('futBack').addEventListener('click', () => { show('end'); scrollTo(0, 0); });
+$('futAgain').addEventListener('click', () => startGame(S.type));
 
 /* ---------- auto-run demo ---------- */
 const DEMO_PLANS = {
@@ -759,7 +877,11 @@ async function runDemo(){
   await spot($('endTitle'), 'After 8 years…', 2600);
   await spot($('result'), 'Your farm next to the neighbour’s: money, quality, soil, water, wildlife, resilience and carbon.', 7000);
   await spot($('lessons'), 'What the trees did for the farm.', 6000);
-  await spot($('againBtn'), 'Want to try it on your own farm? Ask the GrowGrounds team at the stand.', 5000);
+  const ff = $('futureBtn');
+  await spot(ff, `Trees live much longer than 8 years. Let’s fast-forward to year ${PROJECT_YEARS}.`, 3400); await tap(ff);
+  await spot($('futChart'), `Money earned over ${PROJECT_YEARS} years, your farm next to the neighbour’s. The trees keep paying back long after the game ends.`, 7500);
+  await spot($('futStats'), 'Profit, carbon stored, soil and wildlife after 30 years. The trees are never cut, so they keep storing carbon.', 6500);
+  await spot($('futAgain'), 'Want to try it on your own farm? Ask the GrowGrounds team at the stand.', 5000);
 }
 async function startDemo(){
   if (demo.active) return;
