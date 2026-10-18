@@ -90,6 +90,7 @@ button:focus-visible{outline:4px solid var(--sun); outline-offset:3px}
 }
 .tile .crop{position:absolute; font-size:.42em; opacity:.9; line-height:1}
 .tile .c1{left:8%; bottom:6%} .tile .c2{right:8%; top:6%}
+.tile .cnt{position:absolute; left:5%; top:4%; font-size:13px; font-weight:700; line-height:1.2; padding:1px 6px; border-radius:99px; background:#ffffffd9; color:#15261E; z-index:1}
 .tile .cow{position:absolute; right:6%; bottom:4%; font-size:.5em; line-height:1}
 .tile .tree{position:absolute; inset:0; display:grid; place-items:center; line-height:1;
   transform:scale(var(--s,1)); transition:transform .9s cubic-bezier(.3,1.6,.5,1); filter:drop-shadow(0 4px 2px rgba(0,0,0,.35))}
@@ -128,6 +129,7 @@ button:focus-visible{outline:4px solid var(--sun); outline-offset:3px}
 .meter .band{position:absolute; top:0; bottom:0; left:20%; width:25%; background:#5E9E4540}
 .meter .fill{position:absolute; top:0; bottom:0; left:0; background:var(--leaf); border-radius:99px; transition:width .5s}
 .meter .fill.over{background:var(--cherry)}
+.meter .target{position:absolute; top:0; bottom:0; left:30%; width:3px; margin-left:-1px; background:var(--ink); opacity:.75; z-index:1}
 .nbfarm h3{font-size:19px; font-weight:600; color:var(--nb); margin-bottom:8px}
 .grid.mini{gap:3px; padding:5px; border-radius:12px; max-width:none}
 .grid.mini .tile{font-size:clamp(14px,2vw,24px); border-radius:6px; pointer-events:none}
@@ -246,8 +248,8 @@ button:focus-visible{outline:4px solid var(--sun); outline-offset:3px}
     <h1>Plant trees and watch your farm change</h1>
     <p class="lead">Eight years of droughts, heat, rain and price drops, then a look 30 years ahead. Your neighbour plants no trees. Who ends up ahead?</p>
     <div class="choices">
-      <button class="choice" data-farm="coffee"><span class="ico">☕</span><b>Coffee farm</b><small>Shade trees, fruit and native trees among the coffee</small></button>
-      <button class="choice" data-farm="pasture"><span class="ico">🐄</span><b>Cattle pasture</b><small>Shade, fodder shrubs and fruit trees for the herd</small></button>
+      <button class="choice" data-farm="coffee"><span class="ico">☕</span><b>Coffee farm · 2 ha</b><small>Shade trees, fruit and native trees among the coffee</small></button>
+      <button class="choice" data-farm="pasture"><span class="ico">🐄</span><b>Cattle pasture · 10 ha</b><small>Shade, fodder shrubs and fruit trees for the herd</small></button>
     </div>
     <ol class="how">
       <li><span>1</span>Pick a tree</li>
@@ -278,9 +280,10 @@ button:focus-visible{outline:4px solid var(--sun); outline-offset:3px}
         <div class="tabs" role="tablist"><button class="tab" role="tab" data-tab="money" aria-selected="true">Money</button><button class="tab" role="tab" data-tab="farm" aria-selected="false">Farm health</button></div>
         <div class="scores" id="scores"></div>
         <div class="shade">
-          <div class="row"><span>Shade once trees are grown</span><span id="shadeTxt">0%</span></div>
-          <div class="meter"><div class="band"></div><div class="fill" id="shadeFill"></div></div>
-          <div class="row" style="margin-top:4px"><span>Shaded area = best range (20–45%)</span></div>
+          <div class="row"><span>Canopy cover once trees are grown</span><span id="shadeTxt">0%</span></div>
+          <div class="meter"><div class="band"></div><div class="target"></div><div class="fill" id="shadeFill"></div></div>
+          <div class="row" style="margin-top:4px"><span>Aim for about 30% (20–45% is good)</span></div>
+          <div class="row" style="margin-top:6px"><span>Trees planted</span><b id="treeTxt" style="color:var(--ink)">None yet</b></div>
         </div>
       </div>
       <div class="panel nbfarm">
@@ -340,8 +343,14 @@ button:focus-visible{outline:4px solid var(--sun); outline-offset:3px}
 
 <script>
 const YEARS = 8, CELLS = 24, START_CASH = 1500, IDLE_MS = 150000;
+/* money and carbon in FARMS are per plot of a REF_HA farm. A bigger farm has bigger plots,
+   so startGame multiplies money and carbon by ha / REF_HA (pasture: 10 / 2 = 5). */
+const REF_HA = 2, CARE_COST = 14;
 /* the end screen can fast-forward the farm to this year (same trees, the played weather repeated) */
 const PROJECT_YEARS = 30;
+/* carbon credits: price per tonne CO2, the farmer's share, and the first year of payment.
+   The first payment covers all carbon stored so far; after that, each year's new carbon is paid that year. */
+const CARBON_PRICE = 35, CARBON_SHARE = 0.8, CARBON_PAY_FROM = 3;
 /* VERSION 'play' = visitors play themselves (index.html); 'demo' = the game plays itself in a loop, tap to pause (demo.html) */
 const VERSION = 'demo';
 /* demo: DEMO_PACE 1 = normal, 1.5 = 50% slower */
@@ -349,25 +358,25 @@ const DEMO_PACE = 1;
 
 const FARMS = {
   coffee: {
-    type:'coffee', title:'Your coffee farm', nbTitle:"Neighbour: coffee in full sun",
+    type:'coffee', ha:2, title:'Your coffee farm', nbTitle:"Neighbour: coffee in full sun",
     crop:'🌿', cropName:'coffee', yield:1, price:120, cost:30, fert:15, pest:10, heatBonus:false,
     incomeLabel:'Coffee income', qualityLabel:'Coffee quality', pestLabel:'Pesticide cost', pestShort:'spraying',
     trees:[
-      {id:'inga',   icon:'🌳', name:'Inga shade tree', cost:30, mature:3, shade:1.0, buffer:1.0, nfix:1, soil:2.0, income:0,  carbon:0.5,  timber:0,   when:'Shade from year 3', tip:'Fixes nitrogen, drops leaf mulch and cools the coffee. Nothing to sell, but it feeds the soil.'},
-      {id:'banana', icon:'🍌', name:'Banana',          cost:15, mature:1, shade:0.4, buffer:0.4, nfix:0, soil:0.8, income:22, carbon:0.1,  timber:0,   fruitFrom:1, fruitFull:1, when:'Fruit in year 1', tip:'Bunches within about a year. Quick shade and income while the slower trees grow.'},
-      {id:'avocado',icon:'🥑', name:'Avocado',         cost:50, mature:3, shade:0.7, buffer:0.7, nfix:0, soil:1.0, income:60, carbon:0.4,  timber:0,   fruitFrom:4, fruitFull:7, when:'Fruit from year 4', tip:'Grafted avocados give a small first crop around year 4, and more each year after.'},
-      {id:'cedar',  icon:'🌲', name:'Native forest tree', cost:40, mature:5, shade:0.8, buffer:0.8, nfix:0, soil:1.0, income:0,  carbon:1.0,  timber:0,   when:'Carbon for 30+ years', tip:'A long-lived native tree that stays standing. It stores the most carbon and gives birds a home.'}
+      {id:'inga',   icon:'🌳', name:'Inga shade tree', per:15, cost:30, mature:3, shade:1.0, buffer:1.0, nfix:1, soil:2.0, income:0,  carbon:0.5,  timber:0,   when:'Shade from year 3', tip:'Fixes nitrogen, drops leaf mulch and cools the coffee. No fruit to sell, but it feeds the soil and earns carbon credits.'},
+      {id:'banana', icon:'🍌', name:'Banana',          per:50, unit:'banana plants', cost:15, mature:1, shade:0.4, buffer:0.4, nfix:0, soil:0.8, income:22, carbon:0.1,  timber:0,   fruitFrom:1, fruitFull:1, when:'Fruit in year 1', tip:'Bunches within about a year. Quick shade and income while the slower trees grow.'},
+      {id:'avocado',icon:'🥑', name:'Avocado',         per:15, cost:50, mature:3, shade:0.7, buffer:0.7, nfix:0, soil:1.0, income:60, carbon:0.4,  timber:0,   fruitFrom:4, fruitFull:7, when:'Fruit from year 4', tip:'Grafted avocados give a small first crop around year 4, and more each year after.'},
+      {id:'cedar',  icon:'🌲', name:'Native forest tree', per:10, cost:40, mature:5, shade:0.8, buffer:0.8, nfix:0, soil:1.0, income:0,  carbon:1.0,  timber:0,   when:'Carbon for 30+ years', tip:'A long-lived native tree that stays standing. It stores the most carbon, so it earns the most carbon credits, and gives birds a home.'}
     ]
   },
   pasture: {
-    type:'pasture', title:'Your cattle pasture', nbTitle:"Neighbour: open grass, no trees",
+    type:'pasture', ha:10, title:'Your cattle pasture', nbTitle:"Neighbour: open grass, no trees",
     crop:'🌱', cropName:'grass and milk', yield:1, price:100, cost:28, fert:12, pest:7, heatBonus:true,
     incomeLabel:'Milk and cattle income', qualityLabel:'Herd condition', pestLabel:'Tick and fly treatment', pestShort:'tick and fly treatment',
     trees:[
-      {id:'shade',   icon:'🌳', name:'Shade tree',   cost:30, mature:3, shade:1.0,  buffer:0.9, nfix:0.5, soil:1.6, income:0,  carbon:0.6,  timber:0,   when:'Shade from year 3', tip:'Cattle rest in the shade on hot days and keep producing.'},
-      {id:'leucaena',icon:'🌿', name:'Fodder shrub', cost:10, mature:1, shade:0.25, buffer:1.3, nfix:1,   soil:1.5, income:12, carbon:0.15, timber:0,   fruitFrom:1, fruitFull:2, when:'Fodder from year 1', tip:'Fast-growing legume. First cuts of protein-rich fodder within a year, more once established.'},
-      {id:'mango',   icon:'🥭', name:'Mango tree',   cost:45, mature:3, shade:0.8,  buffer:0.7, nfix:0,   soil:1.0, income:55, carbon:0.4,  timber:0,   fruitFrom:4, fruitFull:7, when:'Fruit from year 4', tip:'Grafted mangoes start fruiting around year 4. Shade for the herd long before that.'},
-      {id:'teak',    icon:'🌲', name:'Native forest tree', cost:40, mature:5, shade:0.8,  buffer:0.8, nfix:0,   soil:1.0, income:0,  carbon:1.0,  timber:0,   when:'Carbon for 30+ years', tip:'A long-lived native tree that stays standing, along fences or in the field. It stores the most carbon.'}
+      {id:'shade',   icon:'🌳', name:'Shade tree',   per:50, cost:30, mature:3, shade:1.0,  buffer:0.9, nfix:0.5, soil:1.6, income:0,  carbon:0.6,  timber:0,   when:'Shade from year 3', tip:'Cattle rest in the shade on hot days and keep producing.'},
+      {id:'leucaena',icon:'🌿', name:'Fodder shrub', per:250, unit:'shrubs', cost:10, mature:1, shade:0.25, buffer:1.3, nfix:1,   soil:1.5, income:12, carbon:0.15, timber:0,   fruitFrom:1, fruitFull:2, when:'Fodder from year 1', tip:'Fast-growing legume. First cuts of protein-rich fodder within a year, more once established.'},
+      {id:'mango',   icon:'🥭', name:'Mango tree',   per:50, cost:45, mature:3, shade:0.8,  buffer:0.7, nfix:0,   soil:1.0, income:55, carbon:0.4,  timber:0,   fruitFrom:4, fruitFull:7, when:'Fruit from year 4', tip:'Grafted mangoes start fruiting around year 4. Shade for the herd long before that.'},
+      {id:'teak',    icon:'🌲', name:'Native forest tree', per:50, cost:40, mature:5, shade:0.8,  buffer:0.8, nfix:0,   soil:1.0, income:0,  carbon:1.0,  timber:0,   when:'Carbon for 30+ years', tip:'A long-lived native tree that stays standing, along fences or in the field. It stores the most carbon, so it earns the most carbon credits.'}
     ]
   }
 };
@@ -377,7 +386,7 @@ const EVENTS = {
     good:   {icon:'🌤️', name:'A good year', facts:[
       'Nitrogen-fixing trees like inga feed the soil, so you can buy less fertiliser.',
       'Most fruit trees take 3 to 5 years to bear. Bananas and beans between young trees bring income while you wait.',
-      'Every tree stores carbon in its trunk and roots. Some buyers pay more for coffee grown under shade.',
+      'Every tree stores carbon in its trunk and roots. From year 3 the carbon project pays for it, and 80% of the credit money goes to the farmer.',
       'More kinds of trees bring more birds, bees and other helpers to the farm.',
       'Fallen leaves become mulch. It keeps weeds down and the soil soft and alive.',
       'Coffee ripens more slowly under moderate shade. That often gives denser beans and a better cup, which buyers pay more for.']},
@@ -392,7 +401,7 @@ const EVENTS = {
       'Fodder shrubs fix nitrogen, so the grass around them grows greener without extra fertiliser.',
       'Fruit trees take 3 to 5 years to bear. Fodder shrubs pay back sooner, with feed from the first year.',
       'Trees on pasture bring up water and nutrients from deep soil and return them with their leaves.',
-      'Every tree stores carbon in its trunk and roots, which can open doors to carbon programmes.',
+      'Every tree stores carbon in its trunk and roots. From year 3 the carbon project pays for it, and 80% of the credit money goes to the farmer.',
       'Living fences of trees replace posts that rot, and give fodder and shade for years to come.',
       'Cattle that rest in the shade stay in better condition, which shows in milk yield and sale weight.',
       'Birds and dung beetles that live around trees help keep ticks and flies down, so you spend less on treatments.']},
@@ -410,7 +419,7 @@ const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
 const money = n => (n < 0 ? '−' : '') + '$' + Math.round(Math.abs(n)).toLocaleString('en-US');
 const tree = id => S.cfg.trees.find(t => t.id === id);
 
-function newFarm(){ return {trees:{}, soil:50, moisture:35, cash:START_CASH, carbon:0, lastProfit:null, last:null, tot:{crop:0, tree:0, fert:0, pest:0}}; }
+function newFarm(k = 1){ return {trees:{}, soil:50, moisture:35, cash:START_CASH*k, start:START_CASH*k, carbon:0, carbonPaid:0, lastProfit:null, last:null, tot:{crop:0, tree:0, carbon:0, fert:0, pest:0}}; }
 function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a; }
 function makeEvents(type){
   const pool = type === 'coffee'
@@ -419,10 +428,16 @@ function makeEvents(type){
   return ['good', ...shuffle(pool)];
 }
 
+/* scale money and carbon to the farm size; shade, soil and other shares stay as they are */
+function scaledFarm(F){
+  const k = F.ha / REF_HA;
+  return {...F, k, price:F.price*k, cost:F.cost*k, fert:F.fert*k, pest:F.pest*k, care:CARE_COST*k,
+    trees: F.trees.map(T => ({...T, cost:T.cost*k, income:T.income*k, carbon:T.carbon*k}))};
+}
 function startGame(type){
-  const cfg = FARMS[type];
-  S = {type, cfg, year:0, you:newFarm(), nb:newFarm(), events:makeEvents(type), sel:cfg.trees[0].id, newCell:null, hist:[]};
-  $('farmTitle').textContent = cfg.title;
+  const cfg = scaledFarm(FARMS[type]);
+  S = {type, cfg, year:0, you:newFarm(cfg.k), nb:newFarm(cfg.k), events:makeEvents(type), sel:cfg.trees[0].id, newCell:null, hist:[]};
+  $('farmTitle').textContent = `${cfg.title} (${cfg.ha} ha)`;
   $('nbTitle').textContent = cfg.nbTitle;
   show('game');
   buildPalette();
@@ -444,6 +459,10 @@ function bioScore(farm, y = S.year){
   }
   return Math.round(Math.min(100, 8 + kinds.size * 12 + w * 2.2));
 }
+/* trees per plot: each tap plants a group of T.per trees */
+const unitOf = T => T.unit || 'trees';
+/* counts real trees only: banana plants and fodder shrubs (anything with a unit) are left out */
+function treeCount(farm){ return Object.values(farm.trees).reduce((s,t) => { const T = tree(t.id); return s + (T.unit ? 0 : T.per); }, 0); }
 function fullShade(farm){ return Object.values(farm.trees).reduce((s,t) => s + tree(t.id).shade, 0) / CELLS; }
 
 /* income only starts once a tree bears, then ramps up to full production */
@@ -456,7 +475,7 @@ function treeSums(farm, y){
   for (const k in farm.trees){
     const t = farm.trees[k], T = tree(t.id), m = maturity(t, y);
     s.n++; s.shade += T.shade*m; s.buffer += T.buffer*m; s.nfix += T.nfix*m; s.soilG += T.soil*m;
-    s.treeInc += incomeOf(T, y - t.planted); s.care += (y - t.planted) <= 2 ? 14 : 0; s.carb += T.carbon*m; s.cover += m;
+    s.treeInc += incomeOf(T, y - t.planted); s.care += (y - t.planted) <= 2 ? S.cfg.care : 0; s.carb += T.carbon*m; s.cover += m;
   }
   s.Sh = s.shade / CELLS;
   return s;
@@ -468,7 +487,7 @@ function qualityOf(s){ return clamp(50 + 40*Math.min(s.Sh, 0.4)/0.4 - Math.max(0
 function bufferOf(s){ return Math.min(0.8, s.buffer/CELLS*2.2); }
 /* resilience = weather protection + income from more than one product + water in the soil */
 function resilienceOf(farm, s){
-  const diversity = Math.min(1, s.treeInc/300);
+  const diversity = Math.min(1, s.treeInc/(300*S.cfg.k));
   return Math.round(clamp(100*(0.5*bufferOf(s)/0.8 + 0.25*diversity + 0.25*farm.moisture/100), 0, 100));
 }
 
@@ -495,11 +514,15 @@ function simulate(farm, y, ev){
   const cropInc = CELLS*cfg.yield*shadeEff*soilMult*(1 - loss)*cfg.price*(ev.price || 1)*premium;
   const fertFull = CELLS*cfg.fert, fert = fertFull*(1 - Math.min(0.5, s.nfix/CELLS*1.5));
   const pestFull = CELLS*cfg.pest*(ev.pest ? 2 : 1), pest = pestFull*(1 - Math.min(0.6, (bio - 8)/92*0.8));
-  const profit = cropInc + s.treeInc - CELLS*cfg.cost - fert - pest - s.care;
-  farm.cash += profit; farm.carbon += s.carb; farm.lastProfit = profit;
-  farm.tot.crop += cropInc; farm.tot.tree += s.treeInc; farm.tot.fert += fert; farm.tot.pest += pest;
-  farm.last = {cropInc, treeInc: s.treeInc, fert, pest, quality};
-  return {profit, loss, treeInc: s.treeInc, fertSaved: fertFull - fert, pestSaved: pestFull - pest, dSoil, Sh, quality, cropInc};
+  farm.carbon += s.carb;
+  let carbonT = 0;
+  if (y >= CARBON_PAY_FROM){ carbonT = farm.carbon - farm.carbonPaid; farm.carbonPaid = farm.carbon; }
+  const carbonInc = carbonT*CARBON_PRICE*CARBON_SHARE;
+  const profit = cropInc + s.treeInc + carbonInc - CELLS*cfg.cost - fert - pest - s.care;
+  farm.cash += profit; farm.lastProfit = profit;
+  farm.tot.crop += cropInc; farm.tot.tree += s.treeInc; farm.tot.carbon += carbonInc; farm.tot.fert += fert; farm.tot.pest += pest;
+  farm.last = {cropInc, treeInc: s.treeInc, carbonInc, fert, pest, quality};
+  return {profit, loss, treeInc: s.treeInc, carbonInc, carbonT, fertSaved: fertFull - fert, pestSaved: pestFull - pest, dSoil, Sh, quality, cropInc};
 }
 
 /* ---------- rendering ---------- */
@@ -514,7 +537,7 @@ function tileHTML(farm, i){
   if (t){
     const T = tree(t.id), age = S.year - t.planted;
     const m = age <= 0 ? 0 : clamp(age/T.mature, 0, 1);
-    h += `<span class="tree${S.newCell === i ? ' new' : ''}" style="--s:${(0.42 + 0.58*m).toFixed(2)}">${T.icon}</span>`;
+    h += `<span class="cnt">×${T.per}</span><span class="tree${S.newCell === i ? ' new' : ''}" style="--s:${(0.42 + 0.58*m).toFixed(2)}">${T.icon}</span>`;
   }
   return h;
 }
@@ -535,7 +558,7 @@ function renderGrid(){
 }
 function buildPalette(){
   $('palette').innerHTML = S.cfg.trees.map(T =>
-    `<button class="seed" data-id="${T.id}" aria-pressed="${T.id===S.sel}"><span class="e">${T.icon}</span><span class="n">${T.name}</span><span class="p">${money(T.cost)}</span><span class="w">${T.when}</span></button>`
+    `<button class="seed" data-id="${T.id}" aria-pressed="${T.id===S.sel}"><span class="e">${T.icon}</span><span class="n">${T.name}</span><span class="p">${T.per} ${unitOf(T)} · ${money(T.cost)}</span><span class="w">${T.when}</span></button>`
   ).join('');
 }
 function renderScores(){
@@ -548,6 +571,7 @@ function renderScores(){
     ['Money in the bank', money(y.cash), money(n.cash)],
     [cfg.incomeLabel, L(y,'cropInc'), L(n,'cropInc')],
     ['Fruit and tree income', L(y,'treeInc'), L(n,'treeInc')],
+    ['Carbon credits', L(y,'carbonInc'), L(n,'carbonInc')],
     ['Fertiliser cost', L(y,'fert'), L(n,'fert')],
     [cfg.pestLabel, L(y,'pest'), L(n,'pest')]
   ] : [
@@ -562,6 +586,8 @@ function renderScores(){
     rows.map(r => `<span class="lab">${r[0]}</span><span class="v y">${r[1]}</span><span class="v n">${r[2]}</span>`).join('');
   const sh = fullShade(S.you);
   $('shadeTxt').textContent = Math.round(sh*100) + '%';
+  const nT = treeCount(S.you);
+  $('treeTxt').textContent = nT ? `${nT.toLocaleString('en-US')} · ${Math.round(nT/S.cfg.ha)} per ha` : 'None yet';
   const f = $('shadeFill'); f.style.width = Math.min(100, sh*100) + '%'; f.classList.toggle('over', sh > 0.5);
 }
 function renderTimeline(){
@@ -598,7 +624,7 @@ function plant(i){
   render();
   const sh = fullShade(S.you);
   if (sh > 0.5) setHint(`Careful: once these trees are grown, the field will be very shady. The ${S.cfg.cropName} still needs sun. Tap a new tree again to remove it.`, true);
-  else setHint(`${T.icon} ${T.tip}`);
+  else setHint(`${T.icon} ${T.per} ${unitOf(T)} planted on this plot. ${T.tip}`);
 }
 
 function grow(){
@@ -631,6 +657,10 @@ function showCard(key, ev, r1, r2){
   }
   if (ev.price){ you.push('Price fell for everyone'); nb.push('Price fell for everyone'); }
   if (r1.treeInc > 5) you.push(`Fruit and tree products earned ${money(r1.treeInc)}`);
+  if (r1.carbonInc > 0) you.push(S.year === CARBON_PAY_FROM
+    ? `First carbon credit payment: ${money(r1.carbonInc)} for ${r1.carbonT.toFixed(1)} t CO₂ (you get ${Math.round(CARBON_SHARE*100)}%)`
+    : `Carbon credits paid ${money(r1.carbonInc)}`);
+  else if (S.you.carbon > 0 && S.year < CARBON_PAY_FROM) you.push(`Trees stored ${S.you.carbon.toFixed(1)} t CO₂ so far. Carbon credits are paid from year ${CARBON_PAY_FROM}`);
   if (r1.fertSaved > 5) you.push(`Saved ${money(r1.fertSaved)} on fertiliser`);
   if (r1.pestSaved > 5) you.push(`Saved ${money(r1.pestSaved)} on ${S.cfg.pestShort}`);
   if (ev.pest) nb.push(`Spent ${money(S.nb.last.pest)} on ${S.cfg.pestShort}`);
@@ -657,14 +687,15 @@ function closeCard(){
 function showEnd(){
   const y = S.you, n = S.nb;
   const timber = Object.values(y.trees).reduce((s,t) => s + tree(t.id).timber*clamp((YEARS - t.planted)/15, 0, 1), 0);
-  const yEarn = y.cash - START_CASH, nEarn = n.cash - START_CASH;
+  const yEarn = y.cash - y.start, nEarn = n.cash - n.start;
   const yTotal = yEarn;
   const sy = treeSums(y, YEARS), sn = treeSums(n, YEARS), cfg = S.cfg;
   const rows = [
     ['', 'You', 'Neighbour'],
-    ['Profit in 8 years', money(yEarn), money(nEarn)],
+    [`Profit in 8 years (${cfg.ha} ha)`, money(yEarn), money(nEarn)],
     [cfg.incomeLabel, money(y.tot.crop), money(n.tot.crop)],
     ['Fruit and tree income', money(y.tot.tree), money(n.tot.tree)],
+    ['Carbon credits', money(y.tot.carbon), money(n.tot.carbon)],
     ['Spent on fertiliser', money(y.tot.fert), money(n.tot.fert)],
     ['Spent on ' + cfg.pestShort, money(y.tot.pest), money(n.tot.pest)],
     [cfg.qualityLabel, Math.round(y.last.quality) + '/100', Math.round(n.last.quality) + '/100'],
@@ -672,6 +703,7 @@ function showEnd(){
     ['Soil moisture', Math.round(y.moisture) + '/100', Math.round(n.moisture) + '/100'],
     ['Wildlife', bioScore(y) + '/100', bioScore(n) + '/100'],
     ['Resilience', resilienceOf(y, sy) + '/100', resilienceOf(n, sn) + '/100'],
+    ['Trees on the farm', treeCount(y).toLocaleString('en-US'), treeCount(n).toLocaleString('en-US')],
     ['Carbon stored', y.carbon.toFixed(1) + ' t CO₂', n.carbon.toFixed(1) + ' t CO₂']
   ];
   $('result').innerHTML = rows.map((r,i) => {
@@ -700,7 +732,7 @@ function showEnd(){
 }
 
 /* ---------- 30-year fast-forward ---------- */
-function point(y, you = S.you, nb = S.nb){ return {y, you:you.cash - START_CASH, nb:nb.cash - START_CASH, cy:you.carbon, cn:nb.carbon}; }
+function point(y, you = S.you, nb = S.nb){ return {y, you:you.cash - you.start, nb:nb.cash - nb.start, cy:you.carbon, cn:nb.carbon}; }
 /* keep the same trees and repeat the weather the player just had, up to PROJECT_YEARS */
 function project(){
   const you = JSON.parse(JSON.stringify(S.you)), nb = JSON.parse(JSON.stringify(S.nb));
@@ -758,7 +790,7 @@ function showFuture(){
   $('futSvg').innerHTML = chartSVG(h);
   const st = [
     ['💰', `Extra profit over ${PROJECT_YEARS} years`, money(diff), `You ${money(last.you)} · neighbour ${money(last.nb)}`],
-    ['🌍', 'Carbon stored', Math.round(last.cy) + ' t CO₂', `Neighbour ${Math.round(last.cn)} t · after ${YEARS} years: ${S.you.carbon.toFixed(1)} t`],
+    ['🌍', 'Carbon stored', Math.round(last.cy) + ' t CO₂', `Carbon credits paid to you: ${money(P.you.tot.carbon)} · neighbour ${Math.round(last.cn)} t`],
     ['🌱', 'Soil health', Math.round(P.you.soil) + '/100', `Neighbour ${Math.round(P.nb.soil)}/100`],
     ['🐦', 'Wildlife', bioScore(P.you, PROJECT_YEARS) + '/100', `Neighbour ${bioScore(P.nb, PROJECT_YEARS)}/100`]
   ];
@@ -773,7 +805,7 @@ $('palette').addEventListener('click', e => {
   const b = e.target.closest('.seed'); if (!b) return;
   S.sel = b.dataset.id;
   document.querySelectorAll('.seed').forEach(s => s.setAttribute('aria-pressed', s.dataset.id === S.sel));
-  const T = tree(S.sel); setHint(`${T.icon} ${T.name}: ${T.tip}`);
+  const T = tree(S.sel); setHint(`${T.icon} ${T.name}, ${T.per} ${unitOf(T)} per plot: ${T.tip}`);
 });
 document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => {
   S.tab = b.dataset.tab;
@@ -791,8 +823,8 @@ $('futAgain').addEventListener('click', () => startGame(S.type));
 
 /* ---------- auto-run demo ---------- */
 const DEMO_PLANS = {
-  coffee:  [['inga',[1,4,14,17]], ['banana',[7,10]], ['avocado',[12,23]], ['cedar',[20]]],
-  pasture: [['shade',[1,4,14,17]], ['leucaena',[6,9,11,19]], ['mango',[12]], ['teak',[22]]]
+  coffee:  [['inga',[1,10,20]], ['banana',[4,7,23]], ['avocado',[12,17]], ['cedar',[3,14]]],
+  pasture: [['shade',[1,10,20]], ['leucaena',[6,9,11,19]], ['mango',[3,22]], ['teak',[12,17]]]
 };
 const demo = {active:false, paused:false, next:'coffee'};
 const ring = $('demoRing'), cap = $('demoCap');
@@ -834,12 +866,12 @@ async function runDemo(){
   show('start'); hideSpot(); await sleep(700);
   const choice = document.querySelector(`.choice[data-farm="${type}"]`);
   await spot(choice, `Every round starts by choosing a farm. Let’s play the <b>${word}</b>.`, 3400); await tap(choice);
-  await spot($('grid'), 'This is your field: 24 plots, and no trees yet.', 3200);
+  await spot($('grid'), `This is your ${S.cfg.ha} ha farm, split into 24 plots. No trees yet.`, 3200);
   await spot(document.querySelector('.nbfarm'), 'Next door is a neighbour who never plants trees. Both farms get the same weather and prices.', 4200);
   let first = true;
   for (const [id, cells] of DEMO_PLANS[type]){
     const seed = document.querySelector(`.seed[data-id="${id}"]`), T = tree(id);
-    await spot(seed, `Pick a tree: <b>${T.name}</b>. ${T.when}. It costs ${money(T.cost)} to plant.`, first ? 4500 : 3200);
+    await spot(seed, `Pick a tree: <b>${T.name}</b>. ${T.when}. One tap plants ${T.per} ${unitOf(T)} for ${money(T.cost)}.`, first ? 4500 : 3200);
     await tap(seed);
     for (let k = 0; k < cells.length; k++){
       const tile = $('grid').children[cells[k]];
@@ -848,7 +880,7 @@ async function runDemo(){
     }
     first = false;
   }
-  await spot(document.querySelector('.shade'), 'The shade meter shows how much shade the trees give once grown. Between 20 and 45% is best. Too much shade hurts the harvest.', 5000);
+  await spot(document.querySelector('.shade'), 'The canopy meter shows how much of the farm the trees will cover once grown. We aim for about 30%. Too much shade hurts the harvest.', 5000);
   await spot($('scores'), 'Here your farm is compared with the neighbour’s, year by year.', 3600);
   for (let y = 1; y <= YEARS; y++){
     if (y === 3){
@@ -858,7 +890,7 @@ async function runDemo(){
     }
     if (y === 5){
       const tab = document.querySelector('.tab[data-tab="money"]');
-      await spot(tab, 'Back to <b>Money</b>. The fruit trees have started to bear.', 3200); await tap(tab);
+      await spot(tab, 'Back to <b>Money</b>. Fruit trees have started to bear, and carbon credits are paid every year from year 3.', 3200); await tap(tab);
       await spot($('scores'), 'Compare income and costs with the neighbour.', 3600);
     }
     const nb = $('nextBtn');

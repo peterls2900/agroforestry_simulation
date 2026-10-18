@@ -39,14 +39,15 @@ On the iPad, open the link in Safari and choose **Share → Add to Home Screen**
 
 All numbers and texts sit at the top of the `<script>` block in `index.html`:
 
-- `FARMS` — tree types, costs, income, shade, carbon and the tips shown when a tree is selected.
+- `FARMS` — farm size (`ha`), tree types, trees per plot (`per`), costs, income, shade, carbon and the tips shown when a tree is selected.
 - `EVENTS` — yearly events, how hard they hit, and the fact shown after each year.
 - `START_CASH`, `YEARS` — starting money and game length.
 - `PROJECT_YEARS` — how far the end screen fast-forwards (30).
+- `CARBON_PRICE`, `CARBON_SHARE`, `CARBON_PAY_FROM` — carbon credit price ($35/t), the farmer's share (80%) and the first payment year (3).
 
 ## What the game measures
 
-Money tab: profit, money in the bank, coffee (or milk and cattle) income, fruit and tree income, fertiliser cost, pesticide (or tick and fly treatment) cost.
+Money tab: profit, money in the bank, coffee (or milk and cattle) income, fruit and tree income, carbon credits, fertiliser cost, pesticide (or tick and fly treatment) cost.
 
 Farm health tab: coffee quality (or herd condition), soil health, soil moisture, wildlife, resilience, carbon stored.
 
