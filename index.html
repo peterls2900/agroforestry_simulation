@@ -72,7 +72,7 @@ button:focus-visible{outline:4px solid var(--sun); outline-offset:3px}
 .timeline{display:flex; gap:6px; flex:1; justify-content:center}
 .timeline i{font-style:normal; width:44px; height:44px; border-radius:12px; background:#ffffff1f; display:grid; place-items:center; font-size:22px; color:#ffffffaa; font-size:15px}
 .timeline i.done{background:#fffef4; font-size:24px}
-.timeline i.next{outline:3px solid var(--sun); color:#fffef4}
+.timeline i.cur{outline:3px solid var(--sun); color:#fffef4}
 .ghost{background:transparent; border:2px solid #ffffff66; color:#fffef4; border-radius:999px; padding:8px 18px; font-size:16px; white-space:nowrap}
 
 .board{display:grid; grid-template-columns:minmax(0,1.45fr) minmax(300px,1fr); gap:20px; padding:16px 20px 20px; min-height:0; overflow:auto}
@@ -81,7 +81,7 @@ button:focus-visible{outline:4px solid var(--sun); outline-offset:3px}
 .farm-head{display:flex; justify-content:space-between; align-items:baseline; gap:12px; margin-bottom:10px}
 .cash{font-size:20px; color:var(--muted)} .cash b{color:var(--ink); font-size:26px; font-family:'Karla',system-ui,sans-serif}
 
-.grid{display:grid; grid-template-columns:repeat(6,1fr); gap:6px; background:var(--soil); padding:8px; border-radius:20px;
+.grid{display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:6px; background:var(--soil); padding:8px; border-radius:20px;
   width:100%; max-width:calc((100dvh - 360px) * 1.5); }
 .tile{
   aspect-ratio:1; border:0; border-radius:11px; position:relative; padding:0; overflow:visible;
@@ -98,7 +98,7 @@ button:focus-visible{outline:4px solid var(--sun); outline-offset:3px}
 .tile.shake{animation:shake .3s}
 @keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
 
-.palette{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:14px; max-width:calc((100dvh - 360px) * 1.5 + 0px)}
+.palette{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-top:14px; max-width:calc((100dvh - 360px) * 1.5 + 0px)}
 .seed{
   border:3px solid var(--line); background:var(--surface); border-radius:18px; padding:10px 8px 8px; text-align:center;
   display:grid; gap:2px; justify-items:center; min-height:122px;
@@ -236,6 +236,29 @@ button:focus-visible{outline:4px solid var(--sun); outline-offset:3px}
   *{animation:none !important; transition:none !important}
 }
 
+/* ---------- phones and narrow screens ---------- */
+@media (max-width:700px){
+  .topbar{flex-wrap:wrap; gap:8px 12px; padding:10px 14px}
+  .topbar .yr{font-size:22px}
+  .timeline{order:3; flex:1 1 100%; justify-content:space-between; gap:4px}
+  .timeline i{width:auto; flex:1 1 0; max-width:44px; height:36px}
+  .ghost{margin-left:auto; padding:6px 14px; font-size:15px}
+  .board{padding:12px}
+  .grid{gap:4px; padding:6px; border-radius:14px}
+  .tile{font-size:clamp(18px,7vw,40px); border-radius:8px}
+  .tile .cnt{font-size:10px; padding:0 4px}
+  .palette{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .farm-head{flex-wrap:wrap}
+  .farm h2{font-size:23px}
+  .choices{grid-template-columns:1fr}
+  .choice{min-height:0; padding:18px}
+  .choice .ico{font-size:52px}
+  .choice b{font-size:26px}
+  .start-logo{height:48px}
+  .fstats{grid-template-columns:1fr 1fr}
+  .result > div{padding:8px 10px; font-size:15px}
+  .result .y,.result .n{font-size:18px}
+}
 /* ---------- GrowGrounds logo ---------- */
 .gg-logo{display:block; width:auto}
 .start-logo{height:56px; margin-bottom:18px}
@@ -256,8 +279,8 @@ button:focus-visible{outline:4px solid var(--sun); outline-offset:3px}
     <h1>Plant trees and watch your farm change</h1>
     <p class="lead">Eight years of droughts, heat, rain and price drops, then a look 30 years ahead. Your neighbour plants no trees. Who ends up ahead?</p>
     <div class="choices">
-      <button class="choice" data-farm="coffee"><span class="ico">☕</span><b>Coffee farm · 2 ha</b><small>Shade trees, fruit and native trees among the coffee</small></button>
-      <button class="choice" data-farm="pasture"><span class="ico">🐄</span><b>Cattle pasture · 10 ha</b><small>Shade, fodder shrubs and fruit trees for the herd</small></button>
+      <button class="choice" data-farm="coffee"><span class="ico">☕</span><b>Coffee farm · 2&nbsp;ha</b><small>Shade trees, fruit and native trees among the coffee</small></button>
+      <button class="choice" data-farm="pasture"><span class="ico">🐄</span><b>Cattle pasture · 10&nbsp;ha</b><small>Shade, fodder shrubs and fruit trees for the herd</small></button>
     </div>
     <ol class="how">
       <li><span>1</span>Pick a tree</li>
@@ -639,7 +662,7 @@ function renderTimeline(){
   let h = '';
   for (let i=0;i<YEARS;i++){
     if (i < S.year) h += `<i class="done" title="Year ${i+1}">${EVENTS[S.type][S.events[i]].icon}</i>`;
-    else h += `<i class="${i === S.year ? 'next' : ''}">${i+1}</i>`;
+    else h += `<i class="${i === S.year ? 'cur' : ''}">${i+1}</i>`;
   }
   $('timeline').innerHTML = h;
   $('yrLabel').textContent = S.year === 0 ? 'Planting time' : `Year ${S.year} of ${YEARS}`;
