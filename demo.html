@@ -82,7 +82,7 @@ button:focus-visible{outline:4px solid var(--sun); outline-offset:3px}
 .cash{font-size:20px; color:var(--muted)} .cash b{color:var(--ink); font-size:26px; font-family:'Karla',system-ui,sans-serif}
 
 .grid{display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:6px; background:var(--soil); padding:8px; border-radius:20px;
-  width:100%; max-width:calc((100dvh - 360px) * 1.5); }
+  width:100%; max-width:calc((100dvh - 440px) * 1.5); }
 .tile{
   aspect-ratio:1; border:0; border-radius:11px; position:relative; padding:0; overflow:visible;
   font-size:clamp(26px,4.4vw,52px); background:var(--tc,#7FAE52); transition:background-color .9s;
@@ -98,7 +98,7 @@ button:focus-visible{outline:4px solid var(--sun); outline-offset:3px}
 .tile.shake{animation:shake .3s}
 @keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
 
-.palette{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-top:14px; max-width:calc((100dvh - 360px) * 1.5 + 0px)}
+.palette{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-top:12px}
 .seed{
   border:3px solid var(--line); background:var(--surface); border-radius:18px; padding:10px 8px 8px; text-align:center;
   display:grid; gap:2px; justify-items:center; min-height:122px;
@@ -124,8 +124,13 @@ button:focus-visible{outline:4px solid var(--sun); outline-offset:3px}
 .scores .v.y{color:var(--you)} .scores .v.n{color:var(--nb)}
 .biostrip{margin:10px 0 0; padding:8px 12px; border-radius:12px; background:var(--chip); font-size:15px; line-height:1.4}
 .biostrip b{color:var(--you)}
-.shade{margin-top:14px; padding-top:12px; border-top:1px solid var(--line)}
-.shade .row{display:flex; justify-content:space-between; font-size:15px; color:var(--muted)}
+.shade{margin-top:10px; width:100%; background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:8px 14px 6px}
+.shade .row{display:flex; justify-content:space-between; gap:10px; font-size:15px; color:var(--muted)}
+.shade .row b{color:var(--ink)}
+.shade .row .pct{font-size:20px; margin-left:4px; color:var(--you)}
+.shade.over .row .pct{color:var(--bad)}
+.shade .scale{font-size:13px; margin-top:2px}
+.shade .scale .aim{color:var(--ink); font-weight:700}
 .meter{position:relative; height:16px; border-radius:99px; background:var(--chip); margin-top:6px; overflow:hidden; border:1px solid var(--line)}
 .meter .band{position:absolute; top:0; bottom:0; left:20%; width:25%; background:#68bb9540}
 .meter .fill{position:absolute; top:0; bottom:0; left:0; background:var(--leaf); border-radius:99px; transition:width .5s}
@@ -142,7 +147,7 @@ button:focus-visible{outline:4px solid var(--sun); outline-offset:3px}
 
 @media (max-width:900px), (orientation:portrait){
   .board{grid-template-columns:1fr}
-  .grid,.palette{max-width:none}
+  .grid,.palette,.shade{max-width:none}
   .timeline i{width:34px; height:34px}
 }
 
@@ -304,6 +309,11 @@ button:focus-visible{outline:4px solid var(--sun); outline-offset:3px}
         <div class="cash">Money <b id="cash">$1,500</b></div>
       </div>
       <div class="grid" id="grid" role="grid" aria-label="Your field"></div>
+      <div class="shade" id="canopy">
+        <div class="row"><span><b>Canopy cover</b> once grown <b class="pct" id="shadeTxt">0%</b></span><span>Trees planted <b id="treeTxt">None yet</b></span></div>
+        <div class="meter"><div class="band"></div><div class="target"></div><div class="fill" id="shadeFill"></div></div>
+        <div class="row scale"><span>0%</span><span class="aim">Aim for about 30% · 20–45% is good</span><span>100%</span></div>
+      </div>
       <div class="palette" id="palette"></div>
       <p class="hint" id="hint"></p>
     </div>
@@ -312,12 +322,6 @@ button:focus-visible{outline:4px solid var(--sun); outline-offset:3px}
         <div class="tabs" role="tablist"><button class="tab" role="tab" data-tab="money" aria-selected="true">Money</button><button class="tab" role="tab" data-tab="farm" aria-selected="false">Farm health</button></div>
         <div class="scores" id="scores"></div>
         <p class="biostrip" id="bioStrip" hidden></p>
-        <div class="shade">
-          <div class="row"><span>Canopy cover once trees are grown</span><span id="shadeTxt">0%</span></div>
-          <div class="meter"><div class="band"></div><div class="target"></div><div class="fill" id="shadeFill"></div></div>
-          <div class="row" style="margin-top:4px"><span>Aim for about 30% (20–45% is good)</span></div>
-          <div class="row" style="margin-top:6px"><span>Trees planted</span><b id="treeTxt" style="color:var(--ink)">None yet</b></div>
-        </div>
       </div>
       <button class="next" id="nextBtn">Grow year 1</button>
       <div class="panel nbfarm">
@@ -656,7 +660,7 @@ function renderScores(){
   $('shadeTxt').textContent = Math.round(sh*100) + '%';
   const nT = treeCount(S.you);
   $('treeTxt').textContent = nT ? `${nT.toLocaleString('en-US')} · ${Math.round(nT/S.cfg.ha)} per ha` : 'None yet';
-  const f = $('shadeFill'); f.style.width = Math.min(100, sh*100) + '%'; f.classList.toggle('over', sh > 0.5);
+  const f = $('shadeFill'); f.style.width = Math.min(100, sh*100) + '%'; f.classList.toggle('over', sh > 0.5); $('canopy').classList.toggle('over', sh > 0.5);
 }
 function renderTimeline(){
   let h = '';
@@ -955,7 +959,7 @@ async function runDemo(){
     }
     first = false;
   }
-  await spot(document.querySelector('.shade'), 'The canopy meter shows how much of the farm the trees will cover once grown. We aim for about 30%. Too much shade hurts the harvest.', 5000);
+  await spot($('canopy'), 'The canopy meter shows how much of the farm the trees will cover once grown. We aim for about 30%. Too much shade hurts the harvest.', 5000);
   await spot($('scores'), 'Here your farm is compared with the neighbour’s, year by year.', 3600);
   for (let y = 1; y <= YEARS; y++){
     if (y === 3){
