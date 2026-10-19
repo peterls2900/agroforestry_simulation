@@ -33,7 +33,7 @@ On the iPad, open the link in Safari and choose **Share → Add to Home Screen**
 - Play version: returns to the start screen after 2.5 minutes without a touch (`IDLE_MS`).
 - Demo version: loops coffee and pasture rounds, including the 30-year view; `DEMO_PACE` sets the speed (1 = normal, 1.5 = 50% slower).
 - Pinch and double-tap zoom are blocked.
-- Works offline once loaded; fonts fall back to system fonts if there is no connection.
+- Works offline: the Karla font and the GrowGrounds logo are embedded in the page.
 
 ## Editing the game
 
