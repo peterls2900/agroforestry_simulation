@@ -33,7 +33,7 @@ On the iPad, open the link in Safari and choose **Share → Add to Home Screen**
 - Play version: returns to the start screen after 2.5 minutes without a touch (`IDLE_MS`).
 - Demo version: loops coffee and pasture rounds, including the 30-year view; `DEMO_PACE` sets the speed (1 = normal, 1.5 = 50% slower).
 - Pinch and double-tap zoom are blocked.
-- Works offline once loaded; fonts fall back to system fonts if there is no connection.
+- Works offline: the Karla font and the GrowGrounds logo are embedded in the page.
 
 ## Editing the game
 
@@ -49,9 +49,9 @@ All numbers and texts sit at the top of the `<script>` block in `index.html`:
 
 Money tab: profit, money in the bank, coffee (or milk and cattle) income, fruit and tree income, carbon credits, fertiliser cost, pesticide (or tick and fly treatment) cost.
 
-Farm health tab: coffee quality (or herd condition), soil health, soil moisture, wildlife, resilience, carbon stored.
+Farm health tab: coffee quality (or herd condition), soil health, soil moisture, biodiversity (with birds, bees and soil life levels), resilience, carbon stored.
 
-30-year view: after the 8 years, "Fast-forward to year 30" keeps the player's trees, repeats the weather they just played, and draws money earned since planting for both farms. It also shows extra profit, carbon stored, soil health and wildlife at year 30. Trees are never cut.
+30-year view: after the 8 years, "Fast-forward to year 30" keeps the player's trees, repeats the weather they just played, and draws money earned since planting for both farms. It also shows extra profit, carbon stored, soil health and biodiversity at year 30. Trees are never cut.
 
 The model is illustrative, not a forecast. Review the figures and fact texts with your agronomy team before using it with farmers.
 
